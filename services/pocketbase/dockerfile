@@ -1,0 +1,8 @@
+FROM alpine:latest
+
+COPY custompb.exe /pb.exe
+COPY .env.docker /.env
+
+EXPOSE 8090
+
+CMD ["/pb", "serve"]

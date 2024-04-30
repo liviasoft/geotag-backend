@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AppSetting {
+  id            String   @unique
+  name          String   @id @unique
+  type          DataType
+  boolean       Boolean? @default(false)
+  number        Int?
+  string        String?
+  list          String[]
+  object        Json?
+  objectList    Json[]
+  created       DateTime             @default(now())
+  updated       DateTime?            @updatedAt
+}
+
+enum DataType {
+  boolean
+  number
+  string
+  list
+  object
+  objectList
+}
+
+model User {
+  id            String               @id @default(cuid())
+  email         String?              @unique
+  verified      Boolean?             @default(false) @db.Boolean
+  username      String?              @unique
+  created       DateTime             @default(now())
+  updated       DateTime?            @updatedAt
+  roles         Role[]                @relation("UserHasRoles")
+}
+
+model Role {
+  id          String           @unique
+  name        String           @id @unique
+  description String?
+  isDefault   Boolean          @default(false) @db.Boolean
+  users       User[]           @relation("UserHasRoles")
+  permissions RolePermission[]
+}
+
+model Resource {
+  id          String           @unique
+  name        String           @id @unique
+  description String?
+  permissions RolePermission[]
+}
+
+model RolePermission {
+  id           String   @unique
+  role         String
+  roleData     Role     @relation(fields: [role], references: [name])
+  resource     String
+  resourceData Resource @relation(fields: [resource], references: [name])
+  create       Boolean
+  readOwn      Boolean
+  readAny      Boolean
+  updateOwn    Boolean
+  updateAny    Boolean
+  deleteOwn    Boolean
+  deleteAny    Boolean
+
+  @@id([role, resource])
+}
+
+model Scope {
+  id          String    @unique
+  name        String    @id @unique
+  description String?
+  features    Feature[]
+  active      Boolean
+}
+
+model Feature {
+  id           String           @unique
+  name         String           @id @unique
+  description  String?
+  featureFlags FeatureFlag[]
+  scopeData    Scope            @relation(fields: [scope], references: [name])
+  scope        String
+  active       Boolean
+}
+
+model FeatureFlag {
+  id          String    @unique
+  name        String
+  description String?
+  featureData Feature   @relation(fields: [feature], references: [name])
+  service     Service[] @default([BACKEND])
+  feature     String
+  active      Boolean
+
+  @@id([name, feature])
+}
+
+enum Service {
+  BACKEND
+  FRONTEND
+}
+
