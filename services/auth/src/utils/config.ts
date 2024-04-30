@@ -31,4 +31,16 @@ export const config = {
     adminEmail: process.env.PB_ADMIN_EMAIL,
     adminPassword: process.env.PB_ADMIN_PASSWORD,
   },
+  memgraph: {
+    uri: process.env.NEO4J_URI,
+  },
+  influxdb: {
+    token: process.env.INFLUXDB_TOKEN,
+    url: process.env.INFLUXDB_URL as string,
+    org: process.env.INFLUXDB_ORG as string,
+    bucket: process.env.INFLUXDB_BUCKET as string,
+  },
+  eventStore: {
+    uri: process.env.EVENTSTOREDB_URI,
+  },
 };

@@ -2,10 +2,10 @@ import PocketBase from 'pocketbase';
 
 let pb: InstanceType<typeof PocketBase>;
 
-export const setPB = async (url: string) => {
+export const setPocketBase = async (url: string) => {
   pb = new PocketBase(url);
 };
 
-export const getPB = () => pb;
+export const getPocketBase = () => pb;
 
-export type PocketBaseConnection = ReturnType<typeof getPB>;
+export type PocketBaseConnection = ReturnType<typeof getPocketBase>;
