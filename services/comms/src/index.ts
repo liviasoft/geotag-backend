@@ -1,7 +1,10 @@
 import express from 'express';
+import { getProxyMeta } from './middleware/auth';
 
 const app = express();
 app.use(express.json());
+app.use(getProxyMeta);
+
 const port = 3002;
 
 app.get('/', (req, res) => {
