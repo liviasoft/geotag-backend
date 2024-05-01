@@ -9,10 +9,6 @@ import { config } from './utils/config';
 const httpServer = http.createServer(app);
 const PORT = config.self.port;
 
-app.get('/', (req, res) => {
-  res.send('Hello, TypeScript with Express!');
-});
-
 httpServer.listen(PORT, async () => {
   // await initGraphDriver()
   // await writeTestData()

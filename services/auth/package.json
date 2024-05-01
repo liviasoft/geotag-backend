@@ -26,6 +26,8 @@
     "@bull-board/express": "^5.16.0",
     "@eventstore/db-client": "^6.1.0",
     "@influxdata/influxdb-client": "^1.33.2",
+    "@neoncoder/service-response": "^0.0.7",
+    "@neoncoder/validator-utils": "^0.0.4",
     "@prisma/client": "^5.13.0",
     "bull": "^4.12.2",
     "cookie-parser": "^1.4.6",

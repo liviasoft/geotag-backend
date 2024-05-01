@@ -2,11 +2,14 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, Options, fixRequestBody } from 'http-proxy-middleware';
 import { rateLimit } from 'express-rate-limit';
+import { OK, TooManyRequests } from '@neoncoder/service-response';
 // import { RedisStore } from 'rate-limit-redis'
 // import { connectRedis } from './lib/redis';
 import { timeout } from './middleware/reqTimeout';
+import { defaultHandler, notFoundHander } from './controllers/default';
+import { addRequestMeta } from './middleware/auth';
 
 const app = express();
 
@@ -15,30 +18,24 @@ app.use(morgan('combined'));
 app.use(express.json());
 app.use(cookieParser());
 
-// const client = connectRedis();
-
-// (async () => {
-//   await client.connect()
-// })()
-
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  windowMs: 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
   // standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   // legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  message: 'Too many requests from this IP, please try again after 1 minute',
+  message: TooManyRequests({ message: 'Too many requests from this IP, please try again after 1 minute' }),
   // // Redis store configuration
   // store: new RedisStore({
   // 	sendCommand: (...args: string[]) => client.sendCommand(args),
   // }),
 });
 
-// app.use(limiter)
+app.use('/api/v1/auth', limiter, defaultHandler);
 
 const services = [
   {
     route: '/api/v1/comms',
-    target: 'http://localhost:3001/api/v1/comms',
+    target: 'http://127.0.0.1:3002/api/v1/comms',
   },
   // {
   //   route: "/users",
@@ -57,16 +54,26 @@ const services = [
 
 services.forEach(({ route, target }) => {
   // Proxy options
-  const proxyOptions = {
+  const proxyOptions: Options = {
     target,
     changeOrigin: true,
     pathRewrite: {
       [`^${route}`]: '',
     },
+    ws: true,
+    on: {
+      proxyReq: fixRequestBody,
+    },
   };
 
   // Apply rate limiting and timeout middleware before proxying
-  app.use(route, limiter, timeout, createProxyMiddleware(proxyOptions));
+  app.use(route, limiter, timeout, addRequestMeta, createProxyMiddleware(proxyOptions));
 });
+
+app.get('/', (req, res) => {
+  res.send(OK({}));
+});
+
+app.use('*', notFoundHander);
 
 export { app };
