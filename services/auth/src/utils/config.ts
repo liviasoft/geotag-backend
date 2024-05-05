@@ -23,7 +23,8 @@ export const config = {
   },
   rabbitMQ: {
     url: process.env.RABBITMQ_URL,
-    exchange: process.env.RABBITMQ_EX,
+    queue: process.env.RABBITMQ_QUEUE,
+    exchange: process.env.RABBITMQ_EXCHANGE,
     exqueue: process.env.RABBITMQ_X_QUEUE,
   },
   pocketbase: {
