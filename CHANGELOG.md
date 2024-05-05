@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.8](https://github.com/Bankole2000/lerna-backend-microservices/compare/v0.0.7...v0.0.8) (2024-05-05)
+
+
+### ✨Features
+
+* added custome pocketbase sdk ([16266c2](https://github.com/Bankole2000/lerna-backend-microservices/commits/16266c24bd0c9c0f4174c94b0dfde0057be19173))
+
 ### [0.0.7](https://github.com/Bankole2000/lerna-backend-microservices/compare/v0.0.6...v0.0.7) (2024-05-01)
 
 
