@@ -41,5 +41,8 @@
     "commitizen": {
       "path": "@commitlint/cz-commitlint"
     }
+  },
+  "dependencies": {
+    "@neoncoder/service-response": "^0.0.12"
   }
 }

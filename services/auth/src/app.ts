@@ -10,6 +10,7 @@ import { OK, TooManyRequests } from '@neoncoder/service-response';
 import { timeout } from './middleware/reqTimeout';
 import { defaultHandler, notFoundHander } from './controllers/default';
 import { addRequestMeta } from './middleware/auth';
+import { getPocketBase } from './lib/pocketbase';
 
 const app = express();
 
@@ -37,14 +38,17 @@ const services = [
     route: '/api/v1/comms',
     target: 'http://127.0.0.1:3002/api/v1/comms',
   },
-  // {
-  //   route: "/users",
-  //   target: "https://your-deployed-service.herokuapp.com/users/",
-  // },
-  // {
-  //   route: "/chats",
-  //   target: "https://your-deployed-service.herokuapp.com/chats/",
-  // },
+
+  {
+    route: '/v1/test',
+    target:
+      // process.env.FEEDBACK_SERVICE_URI ?? "http://127.0.0.1:5008/v1/surveys",
+      'https://webhook.site/69acfec8-b27b-425c-902a-5c8c3d878d24/v1/surveys',
+  },
+  {
+    route: '/v1/surveys',
+    target: 'http://127.0.0.1:5008/v1/surveys',
+  },
   // {
   //   route: "/payment",
   //   target: "https://your-deployed-service.herokuapp.com/payment/",
@@ -70,8 +74,11 @@ services.forEach(({ route, target }) => {
   app.use(route, limiter, timeout, addRequestMeta, createProxyMiddleware(proxyOptions));
 });
 
-app.get('/', (req, res) => {
-  res.send(OK({}));
+app.get('/', async (req, res) => {
+  const pb = getPocketBase();
+  const newName = Math.random().toString();
+  await pb.collection('users').update('jzd4ar37o0m2gkn', { name: newName });
+  res.send(OK({ data: newName }));
 });
 
 app.use('*', notFoundHander);

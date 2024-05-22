@@ -17,5 +17,6 @@ export const addRequestMeta = async (req: Request, res: Response, next: NextFunc
       },
     },
   };
+  console.log({ body: req.body });
   return next(); // Cont
 };
