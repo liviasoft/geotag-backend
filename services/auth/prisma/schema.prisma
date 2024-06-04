@@ -14,17 +14,18 @@ datasource db {
 }
 
 model AppSetting {
-  id            String   @unique
-  name          String   @id @unique
-  type          DataType
-  boolean       Boolean? @default(false)
-  number        Int?
-  string        String?
-  list          String[]
-  object        Json?
-  objectList    Json[]
-  created       DateTime             @default(now())
-  updated       DateTime?            @updatedAt
+  id          String    @unique
+  name        String    @id @unique
+  description String?
+  type        DataType
+  boolean     Boolean?  @default(false)
+  number      Int?
+  string      String?
+  list        Json?
+  object      Json?
+  objectList  Json[]
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
 }
 
 enum DataType {
@@ -37,37 +38,61 @@ enum DataType {
 }
 
 model User {
-  id            String               @id @default(cuid())
-  email         String?              @unique
-  verified      Boolean?             @default(false) @db.Boolean
-  username      String?              @unique
-  created       DateTime             @default(now())
-  updated       DateTime?            @updatedAt
-  roles         Role[]                @relation("UserHasRoles")
+  id                  String                   @id @default(cuid())
+  email               String?                  @unique
+  verified            Boolean?                 @default(false) @db.Boolean
+  username            String?                  @unique
+  created             DateTime                 @default(now())
+  updated             DateTime?                @updatedAt
+  roles               Role[]                   @relation("UserHasRoles")
+  featureBans         UserFeatureBan[]
+  resourcePermissions UserResourcePermission[]
+  specialPermissions  UserSpecialPermission[]
+}
+
+model UserSetting {
+  id          String    @unique
+  name        String    @id @unique
+  description String?
+  type        DataType
+  boolean     Boolean?  @default(false)
+  number      Int?
+  string      String?
+  list        Json?
+  object      Json?
+  objectList  Json[]
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
 }
 
 model Role {
-  id          String           @unique
-  name        String           @id @unique
-  description String?
-  isDefault   Boolean          @default(false) @db.Boolean
-  users       User[]           @relation("UserHasRoles")
-  permissions RolePermission[]
+  id                 String                  @unique
+  name               String                  @id @unique
+  description        String?
+  isDefault          Boolean                 @default(false) @db.Boolean
+  created            DateTime                @default(now())
+  updated            DateTime?               @updatedAt
+  users              User[]                  @relation("UserHasRoles")
+  permissions        RolePermission[]
+  specialPermissions RoleSpecialPermission[]
 }
 
 model Resource {
-  id          String           @unique
-  name        String           @id @unique
-  description String?
-  permissions RolePermission[]
+  id              String                   @unique
+  name            String                   @id @unique
+  description     String?
+  created         DateTime                 @default(now())
+  updated         DateTime?                @updatedAt
+  permissions     RolePermission[]
+  userPermissions UserResourcePermission[]
 }
 
 model RolePermission {
-  id           String   @unique
+  id           String    @unique
   role         String
-  roleData     Role     @relation(fields: [role], references: [name])
+  roleData     Role      @relation(fields: [role], references: [name])
   resource     String
-  resourceData Resource @relation(fields: [resource], references: [name])
+  resourceData Resource  @relation(fields: [resource], references: [name])
   create       Boolean
   readOwn      Boolean
   readAny      Boolean
@@ -75,6 +100,8 @@ model RolePermission {
   updateAny    Boolean
   deleteOwn    Boolean
   deleteAny    Boolean
+  created      DateTime  @default(now())
+  updated      DateTime? @updatedAt
 
   @@id([role, resource])
 }
@@ -83,34 +110,111 @@ model Scope {
   id          String    @unique
   name        String    @id @unique
   description String?
-  features    Feature[]
   active      Boolean
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+  features    Feature[]
 }
 
 model Feature {
   id           String           @unique
   name         String           @id @unique
   description  String?
-  featureFlags FeatureFlag[]
-  scopeData    Scope            @relation(fields: [scope], references: [name])
-  scope        String
   active       Boolean
+  scope        String
+  created      DateTime         @default(now())
+  updated      DateTime?        @updatedAt
+  scopeData    Scope            @relation(fields: [scope], references: [name])
+  featureFlags FeatureFlag[]
+  userBans     UserFeatureBan[]
 }
 
 model FeatureFlag {
   id          String    @unique
+  feature     String
   name        String
   description String?
+  active      Boolean
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
   featureData Feature   @relation(fields: [feature], references: [name])
   service     Service[] @default([BACKEND])
-  feature     String
-  active      Boolean
 
   @@id([name, feature])
+}
+
+model SpecialPermission {
+  id          String                  @id @unique
+  name        String                  @unique
+  description String?
+  active      Boolean                 @default(false)
+  created     DateTime                @default(now())
+  updated     DateTime?               @updatedAt
+  roles       RoleSpecialPermission[]
+  users       UserSpecialPermission[]
+}
+
+model RoleSpecialPermission {
+  id                    String            @unique
+  role                  String
+  roleData              Role?             @relation(fields: [role], references: [name])
+  specialPermission     String
+  specialPermissionData SpecialPermission @relation(fields: [specialPermission], references: [name])
+  description           String?
+  active                Boolean           @default(false)
+  created               DateTime          @default(now())
+  updated               DateTime?         @updatedAt
+
+  @@id([role, specialPermission])
+}
+
+model UserFeatureBan {
+  id          String    @unique
+  userId      String
+  feature     String
+  expiresAt   DateTime?
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+  userData    User      @relation(fields: [userId], references: [id])
+  featureData Feature   @relation(fields: [feature], references: [name])
+
+  @@id([feature, userId])
+}
+
+model UserResourcePermission {
+  id           String    @unique
+  user         String
+  resource     String
+  create       Boolean
+  updateOwn    Boolean
+  updateAny    Boolean
+  deleteOwn    Boolean
+  deleteAny    Boolean
+  readOwn      Boolean
+  readAny      Boolean
+  created      DateTime  @default(now())
+  updated      DateTime? @updatedAt
+  userData     User      @relation(fields: [user], references: [id])
+  resourceData Resource  @relation(fields: [resource], references: [name])
+
+  @@id([user, resource])
+}
+
+model UserSpecialPermission {
+  id                    String            @unique
+  user                  String
+  userData              User              @relation(fields: [user], references: [id])
+  specialPermission     String
+  specialPermissionData SpecialPermission @relation(fields: [specialPermission], references: [name])
+  description           String?
+  active                Boolean
+  created               DateTime          @default(now())
+  updated               DateTime?         @updatedAt
+
+  @@id([user, specialPermission])
 }
 
 enum Service {
   BACKEND
   FRONTEND
 }
-

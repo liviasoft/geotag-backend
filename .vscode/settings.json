@@ -4,5 +4,10 @@
   "editor.formatOnSave": false,
   "[json]": { "editor.formatOnSave": true },
   "[javascript]": { "editor.formatOnSave": true },
-  "[typescript]": { "editor.formatOnSave": true }
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
 }

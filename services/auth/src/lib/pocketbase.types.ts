@@ -17,6 +17,7 @@ export interface User extends BaseModel {
 
 export interface UserSetting extends BaseModel {
   name: string;
+  description: string;
   type: (typeof typeOptions)[number];
   boolean?: boolean;
   number?: number;
@@ -28,6 +29,7 @@ export interface UserSetting extends BaseModel {
 
 export interface AppSetting extends BaseModel {
   name: string;
+  description: string;
   type: (typeof typeOptions)[number];
   boolean?: boolean;
   number?: number;
@@ -48,13 +50,13 @@ export interface FeatureFlag extends BaseModel {
   feature: string;
   name: string;
   service: string[];
-  description: string;
+  description?: string;
   active: boolean;
 }
 
 export interface Resource extends BaseModel {
   name: string;
-  description: string;
+  description?: string;
 }
 
 export interface Role extends BaseModel {
@@ -113,19 +115,27 @@ export interface UserSpecialPermission extends BaseModel {
   active: boolean;
 }
 
-export enum collectionNames {
-  'users',
-  'appSettings',
-  'features',
-  'featureFlags',
-  'resources',
-  'roles',
-  'rolePermissions',
-  'userSpecialPermissions',
+export enum collections {
+  users = 'users',
+  appSettings = 'appSettings',
+  features = 'features',
+  featureFlags = 'featureFlags',
+  resources = 'resources',
+  roles = 'roles',
+  rolePermissions = 'rolePermissions',
+  roleSpecialPermissions = 'roleSpecialPermissions',
+  specialPermissions = 'specialPermissions',
+  userFeatureBans = 'userFeatureBans',
+  userResourcePermissions = 'userResourcePermissions',
+  userSpecialPermissions = 'userSpecialPermissions',
+  userSettings = 'userSettings',
 }
 
+export const keys = Object.keys(collections) as unknown as keyof typeof collections;
+//               ^?
 export interface TypedPocketBase extends PocketBase {
   collection(idOrName: 'users'): RecordService<User>;
+  //              ^?
   collection(idOrName: 'appSettings'): RecordService<AppSetting>;
   collection(idOrName: 'features'): RecordService<Feature>;
   collection(idOrName: 'featureFlags'): RecordService<FeatureFlag>;

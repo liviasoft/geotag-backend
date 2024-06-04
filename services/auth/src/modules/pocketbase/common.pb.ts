@@ -1,6 +1,6 @@
-import { IDataAccess, TStatus, statusMap } from '@neoncoder/service-response';
+import { IDataAccess, TStatus, TStatusCode, statusCMap } from '@neoncoder/typed-service-response';
 import { getPocketBase } from '../../lib/pocketbase';
-import { TypedPocketBase } from '../../lib/pocketbase.types';
+import { TypedPocketBase, collections, keys } from '../../lib/pocketbase.types';
 import {
   ClientResponseError,
   CommonOptions,
@@ -14,17 +14,17 @@ import {
 } from '@neoncoder/pocketbase';
 import { sanitizeData } from '@neoncoder/validator-utils';
 
-export default class PBService implements IDataAccess {
+export default class PBService<Keys extends string, T> implements IDataAccess<Keys, T> {
   pb: ReturnType<typeof getPocketBase>;
-  result: TStatus | undefined;
-  collection: string;
+  result: TStatus<Keys, T> | undefined;
+  collection: typeof keys;
 
-  constructor(collection: string, pocketbaseInstance?: TypedPocketBase) {
+  constructor(collection: keyof typeof collections, pocketbaseInstance?: TypedPocketBase) {
     this.pb = pocketbaseInstance ?? getPocketBase();
     this.collection = collection;
   }
 
-  getList({ page = 1, limit = 50, options }: { page: number; limit: 50; options?: RecordListOptions }) {
+  getList({ page = 1, limit = 50, options }: { page: number; limit: number; options?: RecordListOptions }) {
     return this.pb.collection(this.collection).getList(page, limit, options);
   }
 
@@ -99,14 +99,14 @@ export default class PBService implements IDataAccess {
   formatError(error: any, msg?: string) {
     const message = msg ?? error.message;
     if (error instanceof ClientResponseError) {
-      this.result = statusMap.get(error.status)!({ error: error.response, message });
+      this.result = statusCMap.get(error.status as TStatusCode)!({ error: error.response, message });
       return;
     }
-    this.result = statusMap.get(500)!({ error, message });
+    this.result = statusCMap.get(500)!({ error, message });
   }
 
-  sanitize(fields: string[], data: any) {
-    const sanitizedData = sanitizeData(fields, data);
+  sanitize<T extends object>(fields: string[], data: Partial<T>) {
+    const sanitizedData = sanitizeData<T>(fields, data);
     return sanitizedData;
   }
 }

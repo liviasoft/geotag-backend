@@ -13,6 +13,10 @@ export const initGraphDriver = async () => {
   return driver;
 };
 
+export const setMemgraphDriver = async () => {
+  driver = await initGraphDriver();
+};
+
 export const getMemgraphDriver = () => driver;
 
 export const closeDriver = () => driver && driver.close();
