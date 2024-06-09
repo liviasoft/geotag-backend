@@ -1,13 +1,14 @@
 import { Prisma, AppSetting } from '@prisma/client';
 import { PostgresDBService, TPagination } from '../common.pg';
-import { statusTMap } from '@neoncoder/typed-service-response';
+import { CustomErrorByType, statusTMap } from '@neoncoder/typed-service-response';
 
 export type TAppSettingFilters = {
   filters?: Prisma.AppSettingWhereInput;
   orderBy?: Prisma.AppSettingOrderByWithRelationInput | Prisma.AppSettingOrderByWithRelationInput[];
+  exclude?: Array<keyof AppSetting>;
 };
 
-export class AppSettings extends PostgresDBService<'appSettings' | 'appSetting', AppSetting> {
+export class AppSettingsPostgresService extends PostgresDBService<'appSettings' | 'appSetting', AppSetting> {
   appSetting: AppSetting | null;
   fields = [
     'id',
@@ -79,6 +80,18 @@ export class AppSettings extends PostgresDBService<'appSettings' | 'appSetting',
     return this;
   }
 
+  async findFirst({ filters, orderBy }: TAppSettingFilters) {
+    try {
+      const appSetting = await this.prisma.appSetting.findFirst({ where: { ...filters }, orderBy });
+      this.result = appSetting
+        ? statusTMap.get('OK')!<'appSetting', AppSetting>({ data: { appSetting, meta: { filters, orderBy } } })
+        : statusTMap.get('NotFound')!({ data: { meta: filters, orderBy } });
+    } catch (error: any) {
+      this.formatError(error);
+    }
+    return this;
+  }
+
   async search(): Promise<this> {
     return this;
   }
@@ -94,23 +107,59 @@ export class AppSettings extends PostgresDBService<'appSettings' | 'appSetting',
     return this;
   }
 
-  async update() {
+  async update(updateData: Partial<AppSetting>): Promise<this> {
+    const data = this.removeKeys(this.sanitize(this.fields, updateData), ['id']);
+    try {
+      this.assertAppSettingExists();
+      const id = this.appSetting.id;
+      this.appSetting = await this.prisma.appSetting.update({ where: { id }, data });
+      this.result = statusTMap.get('OK')!<'appSetting', AppSetting>({
+        message: 'App setting updated',
+        data: { appSetting: this.appSetting },
+      });
+    } catch (error: any) {
+      this.formatError(error);
+    }
     return this;
   }
 
   async delete(): Promise<this> {
+    try {
+      this.assertAppSettingExists();
+      const id = this.appSetting.id;
+      const deletedAppSetting = await this.prisma.appSetting.delete({ where: { id } });
+      this.result = statusTMap.get('OK')!({
+        data: { meta: { deleted: deletedAppSetting, recoverable: this.softDelete } },
+      });
+      this.unset();
+    } catch (error: any) {
+      this.formatError(error);
+    }
     return this;
   }
 
   async batchCreate(): Promise<this> {
+    console.log('Not yet implemented');
     return this;
   }
 
   async batchDelete(): Promise<this> {
+    console.log('Not yet implemented');
     return this;
   }
 
   async batchUpdate(): Promise<this> {
+    console.log('Not yet implemented');
     return this;
+  }
+
+  assertAppSettingExists(): asserts this is this & { appSetting: AppSetting } {
+    if (!this.appSetting || !this.appSetting.id) {
+      throw new CustomErrorByType({ type: 'ExpectationFailed' });
+    }
+  }
+
+  unset() {
+    this.appSetting = null;
   }
 }

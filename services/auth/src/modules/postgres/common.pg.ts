@@ -1,17 +1,28 @@
-import { IDataAccess, TStatus, statusCMap } from '@neoncoder/typed-service-response';
+import { CustomError, IDataAccess, TStatus, statusCMap } from '@neoncoder/typed-service-response';
 import { PrismaClient } from '@prisma/client';
 import { getPrismaClient } from '../../lib/prisma';
 import { PrismaClientValidationError, PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+// import { makeKeyRemover, sanitizeData } from '@neoncoder/validator-utils';
 import { sanitizeData } from '@neoncoder/validator-utils';
-
+const makeKeyRemover =
+  <Key extends string>(keys: Key[]) =>
+  <Obj>(obj: Obj): Omit<Obj, Key> => {
+    keys.forEach((k) => {
+      delete obj[k as unknown as keyof Obj];
+    });
+    return { ...obj } as any;
+  };
+// const keyRemover = makeKeyRemover(['a', 'b']);
+// const newObject = keyRemover({ a: 1, b: 2, c: 3 });
 type TPagination = { page?: number; limit?: number };
 
 abstract class PostgresDBService<K extends string, T = any> implements IDataAccess<K, T> {
   result?: TStatus<K, T>;
-
-  prisma: PrismaClient;
+  readonly softDelete: boolean;
+  readonly prisma: PrismaClient;
 
   constructor({ prismaInstance, softDelete = true }: { prismaInstance?: PrismaClient; softDelete: boolean }) {
+    this.softDelete = softDelete;
     this.prisma = prismaInstance ?? getPrismaClient(softDelete);
   }
 
@@ -49,12 +60,21 @@ abstract class PostgresDBService<K extends string, T = any> implements IDataAcce
       this.result = statusCMap.get(400)!({ error, message });
       return;
     }
+    if (error instanceof CustomError) {
+      this.result = statusCMap.get(error.code)!({ error, message });
+      return;
+    }
     this.result = statusCMap.get(500)!({ error, message });
   }
 
   sanitize<T extends object>(fields: string[], data: Partial<T>) {
     const sanitizedData = sanitizeData<T>(fields, data);
     return sanitizedData;
+  }
+
+  removeKeys<T>(obj: T, keys: string[]) {
+    const keyRemover = makeKeyRemover(keys);
+    return keyRemover<T>(obj);
   }
 }
 

@@ -1,4 +1,4 @@
-import { GatewayTimeout } from '@neoncoder/service-response';
+import { GatewayTimeout } from '@neoncoder/typed-service-response';
 import { NextFunction, Request, Response } from 'express';
 
 export const timeout = async (req: Request, res: Response, next: NextFunction) => {

@@ -5,7 +5,8 @@
   "[json]": { "editor.formatOnSave": true },
   "[javascript]": { "editor.formatOnSave": true },
   "[typescript]": {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
   },
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"

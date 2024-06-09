@@ -2,7 +2,10 @@ import eventsource from 'eventsource';
 import { app } from './app';
 import http from 'http';
 import { config } from './utils/config';
-import { getPocketBase, setPocketBase } from './lib/pocketbase';
+// import { getPocketBase, setPocketBase } from './lib/pocketbase';
+import { getChannel, rabbitMQConnect, setChannel } from './lib/rabbitmq';
+import { serviceEvents } from './events';
+import { initReverseProxy } from './middleware/reverse-proxy';
 // import PBService from './modules/pocketbase/common.pb';
 // import { setChannel } from "./lib/rabbitmq";
 // import { User } from "./lib/pocketbase.types";
@@ -20,7 +23,7 @@ global.EventSource = eventsource;
 const {
   self,
   // rabbitMQ: { url, exchange, queue },
-  pocketbase,
+  // pocketbase,
 } = config;
 
 const httpServer = http.createServer(app);
@@ -31,15 +34,15 @@ const PORT = self.port;
 
 httpServer.listen(PORT, async () => {
   // await setChannel(url as string, queue as string, exchange as string);
-  await setPocketBase(pocketbase.url as string);
-  const pb = getPocketBase();
-  await pb.collection('users').subscribe(
-    'jzd4ar37o0m2gkn',
-    (data) => {
-      console.log({ data });
-    },
-    {},
-  );
+  // await setPocketBase(pocketbase.url as string);
+  // const pb = getPocketBase();
+  // await pb.collection('users').subscribe(
+  //   'jzd4ar37o0m2gkn',
+  //   (data) => {
+  //     console.log({ data });
+  //   },
+  //   {},
+  // );
   // console.log({ result: result() });
   // const userPBService = new PBService('users');
   // await userPBService.subscribeToCollection({ options: { keepalive: true } });
@@ -70,5 +73,9 @@ httpServer.listen(PORT, async () => {
   // await queryTestDataAggregate()
   // await writeTestEvent()
   // await readTestEvents()
-  console.log(`API running on port ${PORT}`);
+  await initReverseProxy(app);
+  const channel = await rabbitMQConnect(config.rabbitMQ);
+  if (channel) setChannel(channel);
+  await serviceEvents(getChannel());
+  console.log(`${self.name} API running on port ${PORT}`);
 });

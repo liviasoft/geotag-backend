@@ -3,9 +3,9 @@ export const defaultConfig = {
   self: {
     port: 3003,
     name: 'auth',
-    host: 'http://localhost',
+    host: 'http://localhost:3003',
     basePath: 'api/v1',
-    publicUrl: 'http://localhost/api/v1/auth',
+    publicUrl: 'http://localhost:3003/api/v1/auth',
     queue: 'appname-auth-queue',
     jwtSecret: 'secret',
     emoji: '🔐',

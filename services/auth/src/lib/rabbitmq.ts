@@ -22,10 +22,10 @@ export const rabbitMQConnect = async ({ url = r.url, queue = r.queue, exchange =
     await channel.assertQueue(queue, { durable: true });
     await channel.assertExchange(exchange, 'fanout');
     console.log(`🚀 ${emoji} \t${serviceName} RabbitMQ connected`);
-    return { channel, connection };
+    return channel;
   } catch (error) {
     console.log(error);
-    return { channel: null, connection: null };
+    return null;
   }
 };
 
