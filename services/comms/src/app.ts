@@ -2,8 +2,11 @@ import express from 'express';
 import { getProxyMeta } from './middleware/auth';
 import { statusTypes } from '@neoncoder/typed-service-response';
 import { sfff, role, roles, allRoles, rperm, rperms, specPerm } from './middleware/common.middleware';
+import cors from 'cors';
 
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 app.use(getProxyMeta);
 

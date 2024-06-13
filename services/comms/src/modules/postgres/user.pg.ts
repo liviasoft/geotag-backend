@@ -1,13 +1,9 @@
-import { Prisma, Role, User, UserFeatureBan, UserResourcePermission, UserSpecialPermission } from '@prisma/client';
+import { Prisma, User, Message } from '@prisma/client';
 import { PostgresDBService, TPagination } from './common.pg';
 import { CustomErrorByType, statusTMap } from '@neoncoder/typed-service-response';
-import { TRoleWithIncludes } from './settings/roles.pg';
 
 export type TUserWithIncludes = User & {
-  roles?: Role[] | TRoleWithIncludes[];
-  featureBans?: UserFeatureBan[];
-  resourcePermissions?: UserResourcePermission[];
-  specialPermissions?: UserSpecialPermission[];
+  messages?: Message[];
 };
 
 export type TUserFilters = {
@@ -181,7 +177,7 @@ export class UserPostgresService extends PostgresDBService<'user' | 'users', Use
 
   private getIncludes(include?: Prisma.UserInclude) {
     const countInclude: Prisma.UserInclude = {
-      _count: { select: { featureBans: true, resourcePermissions: true, roles: true, specialPermissions: true } },
+      _count: { select: { messages: true } },
     };
     return { ...include, ...countInclude };
   }

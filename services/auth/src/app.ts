@@ -16,6 +16,7 @@ import { allRoles, role, roles, rperm, rperms, specPerm, sfff } from './middlewa
 import { getUserIfLoggedIn } from './middleware/auth';
 import { getAppScopes, getAppSettings, scope } from './middleware/settings';
 import { arrayToObjectByField } from '@neoncoder/validator-utils';
+import { authServiceRoutes } from './routes/index.routes';
 // import { getPocketBase } from './lib/pocketbase';
 
 const app = express();
@@ -39,6 +40,8 @@ const limiter = rateLimit({
   // 	sendCommand: (...args: string[]) => client.sendCommand(args),
   // }),
 });
+
+app.use('/api/v1/auth', scope('auth'), authServiceRoutes);
 
 app.use(
   '/api/v1/auth',

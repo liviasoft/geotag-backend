@@ -3,7 +3,7 @@ import { config } from '../utils/config';
 
 let redisClient: RedisConnection;
 
-export const connectRedis = (url = config.redis.url) => {
+export const connectRedis = async (url = config.redis.url) => {
   return createClient({ url }).on('error', (err) => console.log('Redis Client Error', err));
 };
 

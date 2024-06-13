@@ -2,16 +2,13 @@ import PocketBase, { RecordModel, RecordService } from '@neoncoder/pocketbase';
 
 const typeOptions = ['boolean', 'number', 'string', 'list', 'object', 'objectList'];
 
-export type JSONPrimitive = string | number | boolean | null | undefined | any;
+type JSONPrimitive = string | number | boolean | null | undefined | any;
 
-export type JSONValue = JSONPrimitive | JSONValue[] | { [key: string]: JSONValue };
+type JSONValue = JSONPrimitive | JSONValue[] | { [key: string]: JSONValue };
 
 export interface User extends RecordModel {
   username: string;
   email: string;
-  emailVisibility: boolean;
-  verified: boolean;
-  avatarUrl: string;
   name: string;
   avatar: string;
   phone: string;

@@ -5,6 +5,7 @@ import { config } from '../utils/config';
 let io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
 
 const setIO = (server: any) => {
+  console.log({ path: `${config.self.publicUrl}/socket` });
   io = new Server(server, {
     cors: {
       origin: '*',

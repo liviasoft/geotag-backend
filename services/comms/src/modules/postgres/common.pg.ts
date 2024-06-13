@@ -2,18 +2,8 @@ import { CustomError, IDataAccess, TStatus, statusCMap } from '@neoncoder/typed-
 import { PrismaClient } from '@prisma/client';
 import { getPrismaClient } from '../../lib/prisma';
 import { PrismaClientValidationError, PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-// import { makeKeyRemover, sanitizeData } from '@neoncoder/validator-utils';
 import { sanitizeData, makeKeyRemover } from '@neoncoder/validator-utils';
-// const makeKeyRemover =
-//   <Key extends string>(keys: Key[]) =>
-//   <Obj>(obj: Obj): Omit<Obj, Key> => {
-//     keys.forEach((k) => {
-//       delete obj[k as unknown as keyof Obj];
-//     });
-//     return { ...obj } as any;
-//   };
-// const keyRemover = makeKeyRemover(['a', 'b']);
-// const newObject = keyRemover({ a: 1, b: 2, c: 3 });
+
 type TPagination = { page?: number; limit?: number };
 
 abstract class PostgresDBService<K extends string, T = any> implements IDataAccess<K, T> {

@@ -1,4 +1,4 @@
-import { CustomError, IDataAccess, TStatus, TStatusCode, statusCMap } from '@neoncoder/typed-service-response';
+import { IDataAccess, TStatus, TStatusCode, statusCMap } from '@neoncoder/typed-service-response';
 import { getPocketBase } from '../../lib/pocketbase';
 import { TypedPocketBase, collections, keys } from '../../lib/pocketbase.types';
 import {
@@ -114,10 +114,6 @@ export default abstract class PBService<Keys extends string, T> implements IData
     const message = msg ?? error.message;
     if (error instanceof ClientResponseError) {
       this.result = statusCMap.get(error.status as TStatusCode)!({ error: error.response, message });
-      return;
-    }
-    if (error instanceof CustomError) {
-      this.result = statusCMap.get(error.code)!({ error, message });
       return;
     }
     this.result = statusCMap.get(500)!({ error, message });

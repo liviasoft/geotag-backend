@@ -6,6 +6,8 @@ import { config } from './utils/config';
 import { getChannel, rabbitMQConnect, setChannel } from './lib/rabbitmq';
 import { serviceEvents } from './events';
 import { initReverseProxy } from './middleware/reverse-proxy';
+import { setPocketBase } from './lib/pocketbase';
+import { setIO } from './lib/socketio';
 // import PBService from './modules/pocketbase/common.pb';
 // import { setChannel } from "./lib/rabbitmq";
 // import { User } from "./lib/pocketbase.types";
@@ -27,6 +29,13 @@ const {
 } = config;
 
 const httpServer = http.createServer(app);
+const io = setIO(httpServer);
+io.on('connection', (socket) => {
+  console.log(`${self.name} service Socket Client is connected ${socket.id}`);
+  socket.on('disconnect', async (reason) => {
+    console.log('User disconnected', { reason });
+  });
+});
 const PORT = self.port;
 
 // const myMap = new Map();
@@ -34,7 +43,7 @@ const PORT = self.port;
 
 httpServer.listen(PORT, async () => {
   // await setChannel(url as string, queue as string, exchange as string);
-  // await setPocketBase(pocketbase.url as string);
+  await setPocketBase();
   // const pb = getPocketBase();
   // await pb.collection('users').subscribe(
   //   'jzd4ar37o0m2gkn',

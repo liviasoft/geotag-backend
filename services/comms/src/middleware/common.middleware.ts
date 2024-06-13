@@ -285,16 +285,51 @@ export const sfff =
 
 /**
  * Check if feature flag is enabled
+ * @middleware {@link sf} returns {@link NextFunction} or unauthorized {@link ServiceResponse}
+ * @param {String} scopeFeature - **[scope][seperator][feature]**
+ * - e.g.('auth.login', 'account.manage')
+ * @param {String} [seperator] - character to split from (default '.')
+ * @example
+ * app.get("/premium-posts/:id", sfff('post.content.view'), handler)
+ * // require 'VIEW' flag enabled on the 'CONTENT' feature on 'POST' service
+ * @example
+ * app.patch("/user/me", sfff('user-manage-update', '-'), handler)
+ * // require 'UPDATE' flag enabled on 'MANAGE' feature on 'USER' service
+ */
+export const sf =
+  (scopeFeature: string, seperator: string = '.') =>
+  (_: Request, res: Response, next: NextFunction) => {
+    const { scope, featureBans } = res.locals;
+    const [s, f] = scopeFeature.toUpperCase().split(seperator);
+    const { allow, message, code } = checkFeature(scope[s], f);
+    if (!allow) {
+      const sr = statusCodes.get(code)!({ message });
+      return res.status(sr.statusCode).send(sr);
+    }
+    if (featureBans && featureBans[f] && featureBans[f]['isActive']) {
+      const { expiresAt } = featureBans[f];
+      const message = `You have been banned from this feature ${expiresAt ? 'till ' : ''}${dateFormatter({ dateLike: expiresAt })}`;
+      const fix = expiresAt
+        ? `Ban will be lifted in ${timeTillFormatter(timeDiffInSecs(expiresAt)!, {})}`
+        : `Ban is Permanent, please contact support`;
+      const sr = statusTypes.get('Forbidden')!({ message, fix });
+      return res.status(sr.statusCode).send(sr);
+    }
+    return next();
+  };
+
+/**
+ * Check if feature flag is enabled
  * @function {@link sfff} returns {@link NextFunction} or unauthorized {@link ServiceResponse}
  * @param {Object} s - **scope** serialized object added by middleware
  * @param {String} f - **feature** feature to check if enabled
  * @param {String} ff - **featureFlag** featureFlag to check if enabled
  * @example
- * // return error if the 'REGISTER' feature flag is enabled
+ * // return error if the 'REGISTER' feature flag is not enabled
  * const {scope} = res.locals
- * const r = checkFeatureFlag(scope['auth'], 'email', 'register')
- * if(!r.allow) {
- *    const sr = statusCodes.get(r.code)!({message: r.message})
+ * const ff = checkFeatureFlag(scope['auth'], 'register', 'email')
+ * if(!ff.allow) {
+ *    const sr = statusCodes.get(ff.code)!({message: ff.message})
  *    return res.status(sr.statusCode)
  * }
  */
@@ -312,5 +347,28 @@ export const checkFeatureFlag = (
     return { message: 'This action is not registered', code: 422, allow: false }; // Feature Flag not registered
   if (!s['features'][f]['featureFlags'][ff]['active'])
     return { message: 'This action is currently disabled', code: 423, allow: false }; // Feature Flag not active / enabled
+  return { message: 'OK', allow: true, code: 200 };
+};
+
+/**
+ * Check if feature is enabled
+ * @function {@link sfff} returns {@link NextFunction} or unauthorized {@link ServiceResponse}
+ * @param {Object} s - **scope** serialized object added by middleware
+ * @param {String} f - **feature** feature to check if enabled
+ * @example
+ * // return error if the 'REGISTER' feature is not enabled
+ * const {scope} = res.locals
+ * const feat = checkFeature(scope['auth'], 'register')
+ * if(!feat.allow) {
+ *    const sr = statusCodes.get(feat.code)!({message: feat.message})
+ *    return res.status(sr.statusCode)
+ * }
+ */
+export const checkFeature = (s: any, f: string): { allow: boolean; message: string; code: TStatusCode } => {
+  console.log({ s });
+  if (!s) return { message: 'Service not registered', code: 502, allow: false }; // Service not registered
+  if (!s.active) return { message: 'Service temporarily disabled', code: 503, allow: false }; // Service not active / enabled
+  if (!s['features'][f]) return { message: 'Feature not registered', code: 405, allow: false }; // Feature not registered
+  if (!s['features'][f]['active']) return { message: 'Feature temporarily disabled', code: 403, allow: false }; // Feature not active / enabled
   return { message: 'OK', allow: true, code: 200 };
 };

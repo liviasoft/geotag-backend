@@ -1,7 +1,12 @@
 import { Request, Response } from 'express';
-import { OK, NotFound } from '@neoncoder/typed-service-response';
+import { OK, NotFound, Rez } from '@neoncoder/typed-service-response';
+import { UserPocketbaseService } from '../modules/pocketbase/user.pb';
 
 export const defaultHandler = async (_: Request, res: Response) => {
+  const upbs = new UserPocketbaseService({ isAdmin: true });
+  const userId = 'tpw9m2dvcibu39u';
+  const test = (await upbs.getUsers({ options: { expand: 'roles', filter: `id='${userId}'` } })).result;
+  console.log({ test });
   const {
     scope,
     scopes,
@@ -26,15 +31,16 @@ export const defaultHandler = async (_: Request, res: Response) => {
     message: 'Not yet implemented',
     data: {
       meta: {
-        roles,
+        test,
+        // roles,
         // userPerms,
         // rolePerms,
         // userSpecPerms,
         // roleSpecPerms,
-        settings,
-        permissions,
-        specialPermissions,
-        featureBans,
+        // settings,
+        // permissions,
+        // specialPermissions,
+        // featureBans,
         user,
         asString: {
           roles: JSON.stringify({ ...roles }),
@@ -45,11 +51,16 @@ export const defaultHandler = async (_: Request, res: Response) => {
           scope: JSON.stringify({ ...scope }),
           user: JSON.stringify({ ...user }),
         },
-        scope,
+        // scope,
         scopes,
       },
     },
   });
+  return res.status(sr.statusCode).send(sr);
+};
+
+export const placeholderHandler = async (_: Request, res: Response) => {
+  const sr = Rez.OK({ message: 'Not yet implemented' });
   return res.status(sr.statusCode).send(sr);
 };
 

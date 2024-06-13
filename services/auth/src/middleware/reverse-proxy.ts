@@ -4,9 +4,9 @@ import { Scope } from '@prisma/client';
 import { TStatus } from '@neoncoder/typed-service-response';
 import { config } from '../utils/config';
 import { Options, createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
-import { scope } from './settings';
 import { notFoundHander } from '../controllers/default';
-import { proxyRequestMeta } from './auth';
+// import { scope } from './settings';
+// import { proxyRequestMeta } from './auth';
 
 export const initReverseProxy = async (app: Express) => {
   const spgs = new ScopePostgresService({});
@@ -30,7 +30,8 @@ export const initReverseProxy = async (app: Express) => {
 
       // Apply rate limiting and timeout middleware before proxying
       // app.use(route, limiter, timeout, addRequestMeta, createProxyMiddleware(proxyOptions));
-      app.use(route, scope(name), proxyRequestMeta, createProxyMiddleware(proxyOptions));
+      // app.use(route, scope(name), proxyRequestMeta, createProxyMiddleware(proxyOptions));
+      app.use(route, createProxyMiddleware(proxyOptions));
     }
   });
 

@@ -1,6 +1,7 @@
 import { app } from './app';
 import http from 'http';
 import { config } from './utils/config';
+import { setIO } from './lib/socketio';
 
 const {
   self,
@@ -9,6 +10,13 @@ const {
 } = config;
 
 const httpServer = http.createServer(app);
+const io = setIO(httpServer);
+io.on('connection', (socket) => {
+  console.log(`${self.name} service Socket Client is connected ${socket.id}`);
+  socket.on('disconnect', async (reason) => {
+    console.log('Client disconnected', { reason });
+  });
+});
 const PORT = self.port;
 
 httpServer.listen(PORT, async () => {
@@ -56,5 +64,6 @@ httpServer.listen(PORT, async () => {
   // const channel = await rabbitMQConnect(config.rabbitMQ);
   // if (channel) setChannel(channel);
   // await serviceEvents(getChannel());
+  console.log({ publicUrl: config.self.publicUrl });
   console.log(`${self.name} API running on port ${PORT}`);
 });
