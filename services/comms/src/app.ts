@@ -3,6 +3,8 @@ import { getProxyMeta } from './middleware/auth';
 import { statusTypes } from '@neoncoder/typed-service-response';
 import { sfff, role, roles, allRoles, rperm, rperms, specPerm } from './middleware/common.middleware';
 import cors from 'cors';
+import { commsServiceRoutes } from './routes/index.routes';
+import { healthCheckHandler } from './controllers/default';
 
 const app = express();
 
@@ -10,15 +12,13 @@ app.use(cors());
 app.use(express.json());
 app.use(getProxyMeta);
 
-// const port = 3002;
-
-app.get('/', (req, res) => {
+app.get('/ping', (req, res) => {
   res.send('Hello, TypeScript with Express!');
 });
 
-app.post('/api/v1/comms', (req, res) => {
-  return res.status(200).send({ data: req.body });
-});
+app.get('/health', healthCheckHandler);
+
+app.use('/api/v1/comms', commsServiceRoutes);
 
 app.get(
   '/api/v1/comms',
@@ -35,9 +35,5 @@ app.get(
     return res.status(sr.statusCode).send(sr);
   },
 );
-
-// app.listen(port, () => {
-//   console.log(`Server is running on http://localhost:${port}`);
-// });
 
 export { app };

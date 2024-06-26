@@ -2,15 +2,64 @@ import { CustomErrorByType } from '@neoncoder/typed-service-response';
 import { RedisConnection, connectRedis } from '../lib/redis';
 import { config } from '../utils/config';
 import { SetOptions } from 'redis';
+import {
+  GeoSearchOptions,
+  GeoUnits,
+  GeoCoordinates,
+  ZMember,
+} from '@redis/client/dist/lib/commands/generic-transformers';
+import { RedisCommandArgument } from '@redis/client/dist/lib/commands/index';
+
+interface NX {
+  NX?: true;
+}
+interface XX {
+  XX?: true;
+}
+interface LT {
+  LT?: true;
+}
+interface GT {
+  GT?: true;
+}
+interface CH {
+  CH?: true;
+}
+interface INCR {
+  INCR?: true;
+}
+interface GeoMember extends GeoCoordinates {
+  member: RedisCommandArgument;
+}
+
+interface XRangeRevOptions {
+  COUNT?: number;
+}
+interface NX {
+  NX?: true;
+}
+interface XX {
+  XX?: true;
+}
+type SetGuards = NX | XX;
+
+type GeoAddOptions = SetGuards & GeoAddCommonOptions;
+interface GeoAddCommonOptions {
+  CH?: true;
+}
+
+type ZAddOptions = (NX | (XX & LT & GT)) & CH & INCR;
 
 type TKeyFormatOptions = {
-  service?: boolean;
+  scopeToService?: boolean;
   seperator?: string;
+  useRaw?: boolean;
 };
 
 const defaultKeyFormatOptions: TKeyFormatOptions = {
-  service: true,
+  scopeToService: true,
   seperator: ':',
+  useRaw: false,
 };
 
 export default class CacheService {
@@ -77,7 +126,9 @@ export default class CacheService {
    */
   async hSet(data: Record<string, string | number>, key?: string, opt?: TKeyFormatOptions) {
     this.assertKeyExists(key, opt);
+    console.log({ key, data });
     this.result = await (await this.connect()).client.hSet(this.key, Object.entries(data));
+    console.log({ result: this.result, key: this.key });
     return this;
   }
 
@@ -216,11 +267,536 @@ export default class CacheService {
     return this;
   }
 
+  // List Commands
+
+  /**
+   * Inserts one or more values at the head of the list stored at key.
+   * @async @method {@link lPush} returns mutated {@link CacheService}
+   * @param {string[]} values - Values to insert into the list
+   * @param {?string} [key] - Key which stores the list
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async lPush(values: string[], key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.lPush(this.key, values);
+    return this;
+  }
+
+  /**
+   * Inserts one or more values at the tail of the list stored at key.
+   * @async @method {@link rPush} returns mutated {@link CacheService}
+   * @param {string[]} values - Values to insert into the list
+   * @param {?string} [key] - Key which stores the list
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async rPush(values: string[], key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.rPush(this.key, values);
+    return this;
+  }
+
+  /**
+   * Removes and gets the first element in a list.
+   * @async @method {@link lPop} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key which stores the list
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async lPop(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = this.parseIfJson(await (await this.connect()).client.lPop(this.key));
+    return this;
+  }
+
+  /**
+   * Removes and gets the last element in a list.
+   * @async @method {@link rPop} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key which stores the list
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async rPop(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = this.parseIfJson(await (await this.connect()).client.rPop(this.key));
+    return this;
+  }
+
+  /**
+   * Gets a range of elements from a list.
+   * @async @method {@link lRange} returns mutated {@link CacheService}
+   * @param {number} start - Start index of the range
+   * @param {number} stop - Stop index of the range
+   * @param {?string} [key] - Key which stores the list
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async lRange(start: number, stop: number, key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = this.parseIfJson(await (await this.connect()).client.lRange(this.key, start, stop));
+    return this;
+  }
+
+  /**
+   * Gets the length of a list.
+   * @async @method {@link lLen} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key which stores the list
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async lLen(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.lLen(this.key);
+    return this;
+  }
+
+  // Set Commands
+
+  /**
+   * Adds one or more members to a set.
+   * @async @method {@link sAdd} returns mutated {@link CacheService}
+   * @param {string[]} members - Members to add to the set
+   * @param {?string} [key] - Key which stores the set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async sAdd(members: string[], key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.sAdd(this.key, members);
+    return this;
+  }
+
+  /**
+   * Removes one or more members from a set.
+   * @async @method {@link sRem} returns mutated {@link CacheService}
+   * @param {string[]} members - Members to remove from the set
+   * @param {?string} [key] - Key which stores the set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async sRem(members: string[], key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.sRem(this.key, members);
+    return this;
+  }
+
+  /**
+   * Gets all the members in a set.
+   * @async @method {@link sMembers} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key which stores the set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async sMembers(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.sMembers(this.key);
+    return this;
+  }
+
+  // Sorted Set Commands
+
+  /**
+   * Adds one or more members to a sorted set.
+   * @async @method {@link zAdd} returns mutated {@link CacheService}
+   * @param {{[key: string]: number}} membersWithScores - Members to add to the sorted set with associated scores
+   * @param {?string} [key] - Key which stores the sorted set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async zAdd(
+    membersWithScores: ZMember | ZMember[],
+    options?: ZAddOptions,
+    key?: string,
+    opt?: TKeyFormatOptions,
+  ): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    // this.result = await (await this.connect()).client.zAdd(this.key, membersWithScores);
+    this.result = await (await this.connect()).client.zAdd(this.key, membersWithScores, options);
+    return this;
+  }
+
+  /**
+   * Removes one or more members from a sorted set.
+   * @async @method {@link zRem} returns mutated {@link CacheService}
+   * @param {string[]} members - Members to remove from the sorted set
+   * @param {?string} [key] - Key which stores the sorted set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async zRem(members: string[], key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.zRem(this.key, members);
+    return this;
+  }
+
+  /**
+   * Gets a range of members in a sorted set, by index.
+   * @async @method {@link zRange} returns mutated {@link CacheService}
+   * @param {number} start - Start index of the range
+   * @param {number} stop - Stop index of the range
+   * @param {?string} [key] - Key which stores the sorted set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async zRange(start: number, stop: number, key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.zRange(this.key, start, stop);
+    return this;
+  }
+
+  /**
+   * Gets a range of members in a sorted set, by index, with scores ordered from high to low.
+   * @async @method {@link zRevRange} returns mutated {@link CacheService}
+   * @param {number} start - Start index of the range
+   * @param {number} stop - Stop index of the range
+   * @param {?string} [key] - Key which stores the sorted set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async zRevRange(
+    start: RedisCommandArgument,
+    stop: RedisCommandArgument,
+    options?: XRangeRevOptions,
+    key?: string,
+    opt?: TKeyFormatOptions,
+  ): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    // this.result = await (await this.connect()).client.xRevRange(this.key, start, stop);
+    this.result = await (await this.connect()).client.xRevRange(this.key, start, stop, options);
+    return this;
+  }
+
+  /**
+   * Gets a range of members in a sorted set, by score.
+   * @async @method {@link zRangeByScore} returns mutated {@link CacheService}
+   * @param {number | string} min - Minimum score
+   * @param {number | string} max - Maximum score
+   * @param {?string} [key] - Key which stores the sorted set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async zRangeByScore(
+    min: number | string,
+    max: number | string,
+    key?: string,
+    opt?: TKeyFormatOptions,
+  ): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.zRangeByScore(this.key, min, max);
+    return this;
+  }
+
+  /**
+   * Gets the number of members in a sorted set.
+   * @async @method {@link zCard} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key which stores the sorted set
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async zCard(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.zCard(this.key);
+    return this;
+  }
+
+  // Transaction Commands
+
+  /**
+   * Marks the start of a transaction block. Subsequent commands will be queued for atomic execution.
+   * @async @method {@link multi} returns mutated {@link CacheService}
+   * @returns {Promise<CacheService>}
+   */
+  async multi(): Promise<CacheService> {
+    this.result = await (await this.connect()).client.multi();
+    return this;
+  }
+
+  /**
+   * Executes all commands issued after {@link multi}.
+   * @async @method {@link exec} returns mutated {@link CacheService}
+   * @returns {Promise<CacheService>}
+   */
+  async exec(): Promise<CacheService> {
+    this.result = await (await this.connect()).client.multi().exec();
+    return this;
+  }
+
+  /**
+   * Discards all commands issued after {@link multi}.
+   * @async @method {@link discard} returns mutated {@link CacheService}
+   * @returns {Promise<CacheService>}
+   */
+  async discard(): Promise<CacheService> {
+    this.result = await (await this.connect()).client.discard();
+    return this;
+  }
+
+  /**
+   * Marks the given keys to be watched for conditional execution of a transaction.
+   * @async @method {@link watch} returns mutated {@link CacheService}
+   * @param {string[]} keys - Keys to watch
+   * @returns {Promise<CacheService>}
+   */
+  async watch(keys: string[]): Promise<CacheService> {
+    this.result = await (await this.connect()).client.watch(keys);
+    return this;
+  }
+
+  // Geospatial Commands
+
+  /**
+   * Adds one or more geospatial items (latitude, longitude, name) to the specified key.
+   * @async @method {@link geoAdd} returns mutated {@link CacheService}
+   * @param {{ longitude: number, latitude: number, member: string }[]} items - Geospatial items to add
+   * @param {?string} [key] - Key to store the geospatial items
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async geoAdd(
+    items: GeoMember | GeoMember[],
+    options?: GeoAddOptions,
+    key?: string,
+    opt?: TKeyFormatOptions,
+  ): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.geoAdd(this.key, items, options);
+    // .geoAdd(
+    //   this.key,
+    //   items.map(({ longitude, latitude, member }) => [longitude, latitude, member]),
+    // );
+    return this;
+  }
+
+  /**
+   * Returns the distance between two members in the geospatial index specified by the key.
+   * @async @method {@link geoDist} returns mutated {@link CacheService}
+   * @param {string} member1 - First member
+   * @param {string} member2 - Second member
+   * @param {?string} [unit='m'] - Unit of distance, defaults to meters ('m')
+   * @param {?string} [key] - Key storing the geospatial index
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async geoDist(
+    member1: string,
+    member2: string,
+    unit: GeoUnits,
+    key?: string,
+    opt?: TKeyFormatOptions,
+  ): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.geoDist(this.key, member1, member2, unit);
+    return this;
+  }
+
+  /**
+   * Queries a sorted set representing a geospatial index to fetch members matching certain conditions.
+   * @async @method {@link geoRadius} returns mutated {@link CacheService}
+   * @param {number} longitude - Longitude to use as the center of the search radius
+   * @param {number} latitude - Latitude to use as the center of the search radius
+   * @param {number} radius - Radius of the search area (in units specified by 'unit')
+   * @param {string} unit - Unit of distance ('m' for meters, 'km' for kilometers, 'mi' for miles, 'ft' for feet)
+   * @param {?{ withCoordinates?: boolean, withDistance?: boolean, withHash?: boolean, count?: number, order?: 'ASC' | 'DESC' }} [options] - Optional settings for the query
+   * @param {?string} [key] - Key storing the geospatial index
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async geoRadius(
+    coordinates: GeoCoordinates,
+    radius: number,
+    unit: GeoUnits,
+    options?: GeoSearchOptions,
+    key?: string,
+    opt?: TKeyFormatOptions,
+  ): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    // this.result = await (await this.connect()).client.geoRadius(this.key, longitude, latitude, radius, unit, options);
+    this.result = await (await this.connect()).client.geoRadius(this.key, coordinates, radius, unit, options);
+    return this;
+  }
+
+  /**
+   * Queries a sorted set representing a geospatial index to fetch members within a specified distance of a given member.
+   * @async @method {@link geoRadiusByMember} returns mutated {@link CacheService}
+   * @param {string} member - Member to use as the center of the search radius
+   * @param {number} radius - Radius of the search area (in units specified by 'unit')
+   * @param {string} unit - Unit of distance ('m' for meters, 'km' for kilometers, 'mi' for miles, 'ft' for feet)
+   * @param {?{ withCoordinates?: boolean, withDistance?: boolean, withHash?: boolean, count?: number, order?: 'ASC' | 'DESC' }} [options] - Optional settings for the query
+   * @param {?string} [key] - Key storing the geospatial index
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   * 
+   * {
+      withCoordinates?: boolean;
+      withDistance?: boolean;
+      withHash?: boolean;
+      count?: number;
+      order?: 'ASC' | 'DESC';
+    }
+   */
+  async geoRadiusByMember(
+    member: string,
+    radius: number,
+    unit: GeoUnits,
+    options?: GeoSearchOptions,
+    key?: string,
+    opt?: TKeyFormatOptions,
+  ): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.geoRadiusByMember(this.key, member, radius, unit, options);
+    return this;
+  }
+
+  /**
+   * Returns the GeoHash strings representing the position of one or more members in a geospatial index.
+   * @async @method {@link geoHash} returns mutated {@link CacheService}
+   * @param {string[]} members - Members for which to get GeoHash strings
+   * @param {?string} [key] - Key storing the geospatial index
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async geoHash(members: string[], key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.geoHash(this.key, members);
+    return this;
+  }
+
+  // String Commands
+
+  /**
+   * Increments the integer value of a key by one.
+   * @async @method {@link incr} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key to increment
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async incr(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.incr(this.key);
+    return this;
+  }
+
+  /**
+   * Decrements the integer value of a key by one.
+   * @async @method {@link decr} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key to decrement
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async decr(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.decr(this.key);
+    return this;
+  }
+
+  /**
+   * Appends a value to a key.
+   * @async @method {@link append} returns mutated {@link CacheService}
+   * @param {string} value - Value to append
+   * @param {?string} [key] - Key to append the value to
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async append(value: string, key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.append(this.key, value);
+    return this;
+  }
+
+  /**
+   * Gets a substring of the value of a key between the specified offsets.
+   * @async @method {@link getRange} returns mutated {@link CacheService}
+   * @param {number} start - Start offset (0-based)
+   * @param {number} end - End offset (inclusive)
+   * @param {?string} [key] - Key to get the substring from
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async getRange(start: number, end: number, key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.getRange(this.key, start, end);
+    return this;
+  }
+
+  /**
+   * Overwrites part of the value of a key starting at the specified offset.
+   * @async @method {@link setRange} returns mutated {@link CacheService}
+   * @param {number} offset - Offset at which to start overwriting
+   * @param {string} value - Value to overwrite with
+   * @param {?string} [key] - Key to set the range in
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async setRange(offset: number, value: string, key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.setRange(this.key, offset, value);
+    return this;
+  }
+
+  /**
+   * Checks if a key exists.
+   * @async @method {@link exists} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key to check existence of
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async exists(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.exists(this.key);
+    return this;
+  }
+
+  /**
+   * Persists the expiration of a key by removing the associated expiration time.
+   * @async @method {@link persist} returns mutated {@link CacheService}
+   * @param {?string} [key] - Key to persist the expiration of
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async persist(key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.persist(this.key);
+    return this;
+  }
+
+  // Hash Commands
+
+  /**
+   * Checks if a field exists in the hash stored at the key.
+   * @async @method {@link hExists} returns mutated {@link CacheService}
+   * @param {string} field - Field to check existence of
+   * @param {?string} [key] - Key storing the hash
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async hExists(field: string, key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.hExists(this.key, field);
+    return this;
+  }
+
+  /**
+   * Increments the integer value of a field in a hash by the specified increment.
+   * @async @method {@link hIncrBy} returns mutated {@link CacheService}
+   * @param {string} field - Field to increment
+   * @param {number} increment - Increment value
+   * @param {?string} [key] - Key storing the hash
+   * @param {?TKeyFormatOptions} [opt] - Optional settings for key formatting
+   * @returns {Promise<CacheService>}
+   */
+  async hIncrBy(field: string, increment: number, key?: string, opt?: TKeyFormatOptions): Promise<CacheService> {
+    this.assertKeyExists(key, opt);
+    this.result = await (await this.connect()).client.hIncrBy(this.key, field, increment);
+    return this;
+  }
+
   /**
    * @method {@link formatKey} - Format keys used to store in redis
    * @param {TKeyFormatOptions} [options] - Key formatting options
    * @param {string} [options.seperator=':'] - Seperator defaults to **':'**
-   * @param {string} [options.service='true'] - Prepend key with **[appname][:][service][:]**
+   * @param {string} [options.scopeToService='true'] - default is true. If true **[appname][:][service][:]** else **[appname][:]**
+   * @param {string} [options.useRaw='true'] - User Raw params with seperator to make key
    * @param {...(string | number)[]} args
    * @returns {this}
    * @example
@@ -229,14 +805,21 @@ export default class CacheService {
    * // 'appname:servicename:myKey:prt1'
    * const {key} = cs.formatKey({seperator: '.'}, 'prt1', 'prt2')
    * // 'appname.servicename.prt1.prt2'
-   * const {key} = cs.formatKey({service: false}, 'prt1', 'prt2')
+   * const {key} = cs.formatKey({scopeToService: false}, 'prt1', 'prt2')
+   * // 'appname:myKey:prt1:prt2'
+   * const {key} = cs.formatKey({useRaw: true}, 'prt1', 'prt2')
    * // 'prt1:prt2'
    */
   formatKey(options?: TKeyFormatOptions, ...args: (string | number)[]): this {
-    const { service, seperator } = options ?? defaultKeyFormatOptions;
+    const { scopeToService, seperator, useRaw } = options ?? defaultKeyFormatOptions;
     const s = seperator ?? ':';
-    const sv = service ?? true;
-    this.key = sv ? `${config.redis.scope}${s}${config.self.name}${s}${args.join(s)}` : `${args.join(s)}`;
+    if (useRaw) {
+      this.key = `${args.join(s)}`;
+    }
+    const sv = scopeToService ?? true;
+    this.key = sv
+      ? `${config.appName}${s}${config.self.name}${s}${args.join(s)}`
+      : `${config.appName}${s}${args.join(s)}`;
     return this;
   }
 

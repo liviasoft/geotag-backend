@@ -10,7 +10,7 @@ import { APPSETTING_EVENTS } from './system/appSettings.events';
 import { FEATURE_FLAG_EVENTS } from './system/featureFlags.events';
 import { FEATURE_EVENTS } from './system/features.events';
 import { SCOPE_EVENTS } from './system/scopes.events';
-import { USERSETTING_EVENTS } from './system/userSettings.event';
+import { USERSETTING_EVENTS } from './system/userSettings.events';
 import { USER_EVENTS } from './users.events';
 
 const collections = {

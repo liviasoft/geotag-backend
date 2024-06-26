@@ -29,11 +29,15 @@ export const rabbitMQConnect = async ({ url = r.url, queue = r.queue, exchange =
   }
 };
 
-export const sendToQueues = async <K extends string, T = any>(
-  channel: Channel = getChannel(),
-  message: ServiceEvent<K, T>,
-  services: string[] = [],
-) => {
+export const sendToQueues = async <K extends string, T = any>({
+  channel = getChannel(),
+  services = [],
+  message = new ServiceEvent<any>({ origin: config.self.name, type: 'TEST' }),
+}: {
+  channel?: Channel;
+  message?: ServiceEvent<K, T>;
+  services: string[];
+}) => {
   const promises: any[] = [];
   services.forEach(async (service) => {
     await channel.assertQueue(service);

@@ -100,7 +100,6 @@ export class RolePostgresService extends PostgresDBService<'roles' | 'role', Rol
 
   async create(createData: Partial<Role>, include?: Prisma.RoleInclude): Promise<this> {
     const data = this.sanitize<Role>(this.fields, createData);
-    console.log({ createData, sanitizedData: data });
     try {
       this.role = await this.prisma.role.create({
         data: { ...(data as Prisma.RoleCreateInput) },

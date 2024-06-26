@@ -1,5 +1,16 @@
 import { $Enums, Prisma } from '@prisma/client';
 
+export type TVerificationData = {
+  id: string;
+  type: 'EMAIL' | 'PHONE';
+  expiresIn?: number;
+  OTP: string | number;
+  email?: string;
+  phone?: string;
+  deviceId?: string;
+  idToken?: string;
+};
+
 export type TSerializedSpecialPermission = {
   [key: string]: {
     active: boolean;

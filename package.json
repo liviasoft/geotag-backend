@@ -41,5 +41,8 @@
     "commitizen": {
       "path": "@commitlint/cz-commitlint"
     }
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^10.0.0"
   }
 }

@@ -109,8 +109,6 @@ export class ScopePostgresService extends PostgresDBService<'scopes' | 'scope', 
   async update(updateData: Partial<Scope>, include?: Prisma.ScopeInclude): Promise<this> {
     const sanitizedData = this.sanitize(this.fields, updateData);
     const data = this.removeKeys(sanitizedData, ['id']);
-    console.log({ updateData, sanitizedData });
-    console.log({ data });
     try {
       this.assertScopeExists();
       const id = this.scope.id;

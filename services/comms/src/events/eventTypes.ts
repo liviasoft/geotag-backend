@@ -1,0 +1,5 @@
+export const events = {
+  EMAIL_SENT: 'EMAIL_SENT',
+  SMS_SENT: 'SMS_SENT',
+  PUSH_NOTIFICATION_SENT: 'PUSH_NOTIFICATION_SENT',
+};

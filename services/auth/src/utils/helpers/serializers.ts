@@ -152,29 +152,30 @@ export const constructSettings = <T extends TSetting>(settings: T[]) => {
 export const deconstructSettings = <T extends TSetting>(parsedSettings: { [key: string]: any }) => {
   const deconstructedSettings: Array<Partial<TSetting>> = [];
   Object.entries(parsedSettings).forEach(([key, value]) => {
+    const isObject = (obj: any) => obj === Object(obj);
     const isArray = Array.isArray(value);
-    const isObject = Object.keys(value)[0] && Object.keys(value)[0] !== '0';
+    const isObjectResult = !isArray && isObject(value);
     const isBooleanValue = isBoolean(value);
-    const isNumber = Boolean(parseFloat(value));
-    const isString = isValidString(value) && !isNumber && !isBooleanValue;
-    const isList = isArray && !isObject;
-    const isObjectList = isArray && isObject;
+    const isNumber = Boolean(parseFloat(value)) || value === 0;
+    const isString = isValidString(value) && !isNumber && !isBooleanValue && !isArray && !isObject;
+    const isList = isArray && !isObjectResult && !isObject(value[0]);
+    const isObjectList = isArray && isObject(value[0]);
     const setting: TSetting = {
       name: key,
       boolean: isBoolean(value),
-      type: isNumber
-        ? 'number'
-        : isBooleanValue
-          ? 'boolean'
-          : isString
-            ? 'string'
-            : isObject
-              ? 'object'
-              : isList
-                ? 'list'
-                : 'objectList',
+      type: isObjectList
+        ? 'objectList'
+        : isObjectResult
+          ? 'object'
+          : isList
+            ? 'list'
+            : isNumber
+              ? 'number'
+              : isBooleanValue
+                ? 'boolean'
+                : 'string',
       list: isList ? value : null,
-      object: isObject ? value : null,
+      object: isObjectResult ? value : null,
       string: isString ? value : null,
       number: isNumber ? value : null,
       objectList: isObjectList ? value : [],

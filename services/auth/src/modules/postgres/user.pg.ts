@@ -23,6 +23,8 @@ export class UserPostgresService extends PostgresDBService<'user' | 'users', Use
     'id',
     'username',
     'email',
+    'phone',
+    'phoneData',
     'avatar',
     'avatarUrl',
     'roles',

@@ -43,7 +43,9 @@ model User {
   emailVisibility     Boolean?                 @default(false)
   verified            Boolean?                 @default(false) @db.Boolean
   username            String?                  @unique
-  avatar              String?  
+  phone               String?                  @unique
+  phoneData           Json?
+  avatar              String?
   avatarUrl           String?                
   created             DateTime                 @default(now())
   updated             DateTime?                @updatedAt

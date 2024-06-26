@@ -11,7 +11,20 @@ export class UserPocketbaseService extends PBService<'user' | 'users', User> {
 
   token: string | null;
 
-  fields = ['username', 'email', 'emailVisibility', 'verified', 'avatar', 'avatarUrl', 'name', 'phone', 'phoneData'];
+  fields = [
+    'id',
+    'username',
+    'email',
+    'emailVisibility',
+    'verified',
+    'avatar',
+    'avatarUrl',
+    'name',
+    'phone',
+    'phoneData',
+    'password',
+    'passwordConfirm',
+  ];
 
   constructor({ isAdmin = false, user, token }: { isAdmin?: boolean; user?: User; token?: string }) {
     const pocketbaseInstance = isAdmin ? getPocketBase(isAdmin) : undefined;

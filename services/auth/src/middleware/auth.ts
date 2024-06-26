@@ -16,8 +16,8 @@ import { TRoleSpecialPermissionWithInclude } from '../modules/postgres/settings/
 import { TUserFeatureBanWithIncludes } from '../modules/postgres/settings/userFeatureBans.pg';
 
 export const proxyRequestMeta = async (req: Request, res: Response, next: NextFunction) => {
-  const { scope, user, roles, settings, permissions, specialPermissions, featureBans } = res.locals;
   // NOTE: Best to use all lowercase property names for request headers
+  const { scope, user, roles, settings, permissions, specialPermissions, featureBans } = res.locals;
   req.headers.user = user ? JSON.stringify(user) : '';
   req.headers.scope = scope ? JSON.stringify(scope) : '';
   req.headers.roles = roles ? JSON.stringify(roles) : '';

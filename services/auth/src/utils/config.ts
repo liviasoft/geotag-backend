@@ -12,7 +12,7 @@ export const config = parsed
         host: parsed.SERVICE_HOST,
         basePath: `${parsed.BASE_PATH}/${parsed.SERVICE_NAME}`.toLowerCase(),
         publicUrl: `${parsed.SERVICE_HOST}/${parsed.BASE_PATH}/${parsed.SERVICE_NAME}`.toLowerCase(),
-        queue: `${parsed.APPNAME}-${parsed.SERVICE_NAME}-queue`.toLowerCase(),
+        queue: `${parsed.APPNAME}-${parsed.SERVICE_NAME}-queue`,
         jwtSecret: parsed.JWT_SECRET,
         emoji: parsed.EMOJI,
         accessTokenTTL: parsed.ACCESS_TOKEN_TTL,

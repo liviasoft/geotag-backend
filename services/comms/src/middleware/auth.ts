@@ -12,7 +12,8 @@ export const getProxyMeta = async (req: Request, res: Response, next: NextFuncti
   }
   if (req.headers.featurebans) res.locals.featureBans = JSON.parse(req.headers.featurebans as string);
   // console.log({ specialPermissions: req.headers.specialpermissions });
-  console.log({ featureBans: res.locals.featureBans });
-  // console.log({ locals: res.locals });
+  // console.log({ featureBans: res.locals.featureBans });
+  console.log(res.locals);
+  res.locals.params = {};
   next();
 };

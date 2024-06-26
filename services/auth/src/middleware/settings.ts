@@ -3,15 +3,13 @@ import { AppSettingsPostgresService } from '../modules/postgres/settings/appSett
 import { TStatus, statusTypes } from '@neoncoder/typed-service-response';
 import { AppSetting, Scope } from '@prisma/client';
 import { ScopePostgresService } from '../modules/postgres/settings/scopes.pg';
-import { constructSettings, deconstructSettings, serializeScope } from '../utils/helpers/serializers';
+import { constructSettings, serializeScope } from '../utils/helpers/serializers';
 
-export const getAppSettings = async (req: Request, res: Response, next: NextFunction) => {
+export const getAppSettings = async (_: Request, res: Response, next: NextFunction) => {
   const aspgs = new AppSettingsPostgresService({});
   const result: TStatus<'appSettings', AppSetting> = (await aspgs.getFullList({})).result!;
   if (!result.data?.appSettings) return next();
   const settings: { [key: string]: any } = constructSettings<AppSetting>(result.data.appSettings as AppSetting[]);
-  const reconstructed = deconstructSettings(settings);
-  console.log({ settings, reconstructed });
   res.locals.settings = settings;
   next();
 };
@@ -46,11 +44,3 @@ export const scope = (scope: string) => {
     next();
   };
 };
-
-// export const requireFeatureFlag = ({ feature, flag }: { feature: string; flag: string }) => {
-//   return async (_:Request, res: Response, next: NextFunction) => {
-
-//     const ffpgs = new FeatureFlagPostgresService({});
-//     const ff = await ffpgs.findFirst({ filters: { AND: [{ featureData: { name: feature } }, { name: flag }] } });
-//   }
-// };

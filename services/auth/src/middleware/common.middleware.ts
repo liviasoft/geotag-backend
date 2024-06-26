@@ -1,6 +1,34 @@
 import { Response, Request, NextFunction } from 'express';
 import { ServiceResponse, TStatusCode, statusCodes, statusTypes } from '@neoncoder/typed-service-response';
 import { dateFormatter, timeDiffInSecs, timeTillFormatter } from '@neoncoder/validator-utils';
+import { AnyZodObject, ZodError, ZodIssue } from 'zod';
+
+export const zodValidate =
+  (schema: AnyZodObject, schemaName: string) => (req: Request, res: Response, next: NextFunction) => {
+    try {
+      schema.parse({
+        body: req.body,
+        query: req.query,
+        params: req.params,
+      });
+      return next();
+    } catch (error: any) {
+      const sr: ServiceResponse<any> = statusTypes.get('BadRequest')!({
+        message: `${schemaName} validation failed`,
+      });
+      if (error instanceof ZodError) {
+        sr.error = error['issues'].map(({ path, message, code }: ZodIssue) => ({
+          field: path[path.length - 1],
+          code,
+          path,
+          message,
+        }));
+      } else {
+        sr.error = error;
+      }
+      return res.status(sr.statusCode).send(sr);
+    }
+  };
 
 export const resourceActions = {
   create: 'create',
@@ -268,7 +296,7 @@ export const sfff =
     const [s, f, ff] = scopeFeatureFlag.toUpperCase().split(seperator);
     const { allow, message, code } = checkFeatureFlag(scope[s], f, ff);
     if (!allow) {
-      const sr = statusCodes.get(code)!({ message });
+      const sr = statusCodes.get(code)!({ message, meta: `s - ${s}, f - ${f}, ff - ${ff}` });
       return res.status(sr.statusCode).send(sr);
     }
     if (featureBans && featureBans[f] && featureBans[f]['isActive']) {
@@ -338,13 +366,12 @@ export const checkFeatureFlag = (
   f: string,
   ff: string,
 ): { allow: boolean; message: string; code: TStatusCode } => {
-  console.log({ s });
   if (!s) return { message: 'Service not registered', code: 502, allow: false }; // Service not registered
   if (!s.active) return { message: 'Service temporarily disabled', code: 503, allow: false }; // Service not active / enabled
-  if (!s['features'][f]) return { message: 'Feature not registered', code: 405, allow: false }; // Feature not registered
-  if (!s['features'][f]['active']) return { message: 'Feature temporarily disabled', code: 403, allow: false }; // Feature not active / enabled
+  if (!s['features'][f]) return { message: `Feature ${f} not registered`, code: 405, allow: false }; // Feature not registered
+  if (!s['features'][f]['active']) return { message: `Feature ${f} temporarily disabled`, code: 403, allow: false }; // Feature not active / enabled
   if (!s['features'][f]['featureFlags'][ff])
-    return { message: 'This action is not registered', code: 422, allow: false }; // Feature Flag not registered
+    return { message: `This action is not registered ${ff}`, code: 422, allow: false }; // Feature Flag not registered
   if (!s['features'][f]['featureFlags'][ff]['active'])
     return { message: 'This action is currently disabled', code: 423, allow: false }; // Feature Flag not active / enabled
   return { message: 'OK', allow: true, code: 200 };
@@ -365,10 +392,9 @@ export const checkFeatureFlag = (
  * }
  */
 export const checkFeature = (s: any, f: string): { allow: boolean; message: string; code: TStatusCode } => {
-  console.log({ s });
   if (!s) return { message: 'Service not registered', code: 502, allow: false }; // Service not registered
   if (!s.active) return { message: 'Service temporarily disabled', code: 503, allow: false }; // Service not active / enabled
-  if (!s['features'][f]) return { message: 'Feature not registered', code: 405, allow: false }; // Feature not registered
-  if (!s['features'][f]['active']) return { message: 'Feature temporarily disabled', code: 403, allow: false }; // Feature not active / enabled
+  if (!s['features'][f]) return { message: `Feature ${f} not registered`, code: 405, allow: false }; // Feature not registered
+  if (!s['features'][f]['active']) return { message: `Feature ${f} temporarily disabled`, code: 403, allow: false }; // Feature not active / enabled
   return { message: 'OK', allow: true, code: 200 };
 };

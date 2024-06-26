@@ -1,7 +1,9 @@
 FROM alpine:latest
 
+ARG RABBITMQ_URL
+ARG RABBITMQ_EXCHANGE
+
 COPY custompb.exe /pb.exe
-COPY .env.docker /.env
 
 EXPOSE 8090
 

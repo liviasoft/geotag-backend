@@ -5,8 +5,9 @@ import { TStatus } from '@neoncoder/typed-service-response';
 import { config } from '../utils/config';
 import { Options, createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { notFoundHander } from '../controllers/default';
-// import { scope } from './settings';
-// import { proxyRequestMeta } from './auth';
+import { scope } from './settings';
+import { proxyRequestMeta } from './auth';
+import { limiter, timeout } from './reqTimeout';
 
 export const initReverseProxy = async (app: Express) => {
   const spgs = new ScopePostgresService({});
@@ -29,9 +30,7 @@ export const initReverseProxy = async (app: Express) => {
       };
 
       // Apply rate limiting and timeout middleware before proxying
-      // app.use(route, limiter, timeout, addRequestMeta, createProxyMiddleware(proxyOptions));
-      // app.use(route, scope(name), proxyRequestMeta, createProxyMiddleware(proxyOptions));
-      app.use(route, createProxyMiddleware(proxyOptions));
+      app.use(route, limiter, timeout, scope(name), proxyRequestMeta, createProxyMiddleware(proxyOptions));
     }
   });
 
