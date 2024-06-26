@@ -1,4 +1,4 @@
-FROM microsoft/nanoserver
+FROM alpine:latest
 
 ARG RABBITMQ_URL
 ARG RABBITMQ_EXCHANGE
