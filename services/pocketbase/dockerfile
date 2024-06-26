@@ -1,10 +1,10 @@
-FROM alpine:latest
+FROM microsoft/nanoserver
 
 ARG RABBITMQ_URL
 ARG RABBITMQ_EXCHANGE
 
-COPY /services/pocketbase/custompb.exe /pb.exe
+COPY /services/pocketbase/custompb.exe /bin/
 
 EXPOSE 8090
 
-CMD ["/pb", "serve"]
+CMD ["/bin/custompb.exe", "serve"]
