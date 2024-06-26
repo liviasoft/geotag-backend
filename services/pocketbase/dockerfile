@@ -3,7 +3,7 @@ FROM alpine:latest
 ARG RABBITMQ_URL
 ARG RABBITMQ_EXCHANGE
 
-COPY custompb.exe /pb.exe
+COPY /services/pocketbase/custompb.exe /pb.exe
 
 EXPOSE 8090
 
