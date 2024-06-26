@@ -1,9 +1,9 @@
-FROM alpine:latest
+FROM alpine:3.20.1
 
 ARG RABBITMQ_URL
 ARG RABBITMQ_EXCHANGE
 
-COPY /services/pocketbase/custompb.exe /bin/
+COPY services/pocketbase/custompb.exe /bin/
 
 EXPOSE 8090
 
