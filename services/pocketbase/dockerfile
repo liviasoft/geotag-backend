@@ -1,4 +1,4 @@
-FROM alpine:3.20.1 as downloader
+FROM alpine:latest
 
 ARG RABBITMQ_URL
 ARG RABBITMQ_EXCHANGE
