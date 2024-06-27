@@ -1,25 +1,27 @@
-import express from 'express';
-import { getProxyMeta } from './middleware/auth';
+import http from 'http';
+import { app } from './app';
+import { config } from './utils/config';
+import { rabbitMQConnect, setChannel, getChannel } from './lib/rabbitmq';
+import { serviceEvents } from './events';
+import { setIO } from './lib/socketio';
+import { serviceUP } from './lib/redis';
 
-const app = express();
-app.use(express.json());
-app.use(getProxyMeta);
+const { self } = config;
 
-const port = 3002;
-
-app.get('/', (req, res) => {
-  res.send('Hello, TypeScript with Express!');
+const httpServer = http.createServer(app);
+const io = setIO(httpServer);
+io.on('connection', (socket) => {
+  console.log(`${self.name} service Socket Client is connected ${socket.id}`);
+  socket.on('disconnect', async (reason) => {
+    console.log('Client disconnected', { reason });
+  });
 });
+const PORT = self.port;
 
-app.post('/api/v1/comms', (req, res) => {
-  return res.status(200).send({ data: req.body });
-});
-
-app.get('/api/v1/comms', (req, res) => {
-  console.log({ body: req.body, locals: res.locals });
-  return res.send('This is from the comms service');
-});
-
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+httpServer.listen(PORT, async () => {
+  await serviceUP();
+  const channel = await rabbitMQConnect(config.rabbitMQ);
+  if (channel) setChannel(channel);
+  await serviceEvents(getChannel());
+  console.log(`${self.name} API running on port ${PORT}`);
 });

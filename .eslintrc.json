@@ -11,6 +11,14 @@
         "sourceType": "module"
     },
     "rules": {
-      "@typescript-eslint/no-explicit-any": "off"
+      "@typescript-eslint/no-explicit-any": "off",
+      "prettier/prettier": [
+        "warn",
+        {
+          "singleQuote": true,
+          "semi": true,
+          "parser": "typescript"
+        }
+      ]
     }
 }

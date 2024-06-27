@@ -1,8 +1,18 @@
 FROM alpine:latest
 
-COPY custompb.exe /pb.exe
-COPY .env.docker /.env
+ARG RABBITMQ_URL
+ARG RABBITMQ_EXCHANGE
+
+RUN apk add --no-cache \
+    unzip \
+    ca-certificates
+
+ADD https://github.com/Bankole2000/lerna-backend-microservices/raw/main/services/pocketbase/pb.zip /tmp/pb.zip
+RUN unzip /tmp/pb.zip -d /pb/
+# FROM scratch
+
+# COPY --from=downloader /custompb /custompb
 
 EXPOSE 8090
 
-CMD ["/pb", "serve"]
+CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090"]

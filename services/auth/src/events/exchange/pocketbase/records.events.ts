@@ -10,10 +10,12 @@ import { APPSETTING_EVENTS } from './system/appSettings.events';
 import { FEATURE_FLAG_EVENTS } from './system/featureFlags.events';
 import { FEATURE_EVENTS } from './system/features.events';
 import { SCOPE_EVENTS } from './system/scopes.events';
+import { USERSETTING_EVENTS } from './system/userSettings.events';
 import { USER_EVENTS } from './users.events';
 
 const collections = {
   APPSETTINGS: 'APPSETTINGS',
+  USERSETTINGS: 'USERSETTINGS',
   SCOPES: 'SCOPES',
   USERS: 'USERS',
   FEATURES: 'FEATURES',
@@ -30,6 +32,7 @@ const collections = {
 
 const recordsEventHandlers = {
   [collections.APPSETTINGS]: APPSETTING_EVENTS,
+  [collections.USERSETTINGS]: USERSETTING_EVENTS,
   [collections.SCOPES]: SCOPE_EVENTS,
   [collections.USERS]: USER_EVENTS,
   [collections.FEATURES]: FEATURE_EVENTS,
@@ -47,6 +50,7 @@ const recordsEventHandlers = {
 export const RECORDS_EVENTS = async (message: any) => {
   const { data } = message;
   if (Object.keys(collections).includes(data.collection)) {
+    console.log(`${data.collection} => ${data.action}`);
     await recordsEventHandlers[data.collection](message);
   }
 };

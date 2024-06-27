@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AppSetting {
+  id          String    @unique
+  name        String    @id @unique
+  description String?
+  boolean     Boolean?  @default(false)
+  number      Int?
+  string      String?
+  list        Json?
+  object      Json?
+  objectList  Json[]
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+  type        DataType
+}
+
+enum DataType {
+  boolean
+  number
+  string
+  list
+  object
+  objectList
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String?   @unique
+  emailVisibility Boolean?  @default(false)
+  verified        Boolean?  @default(false) @db.Boolean
+  username        String?   @unique
+  phone           String?   @unique
+  phoneData       Json?
+  avatar          String?
+  avatarUrl       String?
+  created         DateTime  @default(now())
+  updated         DateTime? @updatedAt
+  messages        Message[]
+}
+
+model UserSetting {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  type        DataType
+  boolean     Boolean?  @default(false)
+  number      Int?
+  string      String?
+  list        Json?
+  object      Json?
+  objectList  Json[]
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+}
+
+model MessageTemplate {
+  id                       String    @id @default(cuid())
+  name                     String    @unique
+  description              String?
+  requiredFields           String[]  @default([])
+  emailTemplate            String?
+  smsTemplate              String?
+  pushNotificationTemplate String?
+  created                  DateTime  @default(now())
+  updated                  DateTime? @updatedAt
+  messages                 Message[]
+}
+
+model Message {
+  id                String            @id @default(cuid())
+  recipient         String
+  messageTemplateId String
+  recipientData     User              @relation(fields: [recipient], references: [id], onDelete: Cascade)
+  created           DateTime          @default(now())
+  updated           DateTime?         @updatedAt
+  sms               SMS?
+  email             Email?
+  pushNotification  PushNotification?
+  messageTemplate   MessageTemplate   @relation(fields: [messageTemplateId], references: [id], onDelete: NoAction)
+}
+
+model SMS {
+  id       String        @id @unique
+  content  String
+  options  Json?
+  provider String
+  attempts Int           @default(0)
+  response String?
+  created  DateTime      @default(now())
+  updated  DateTime?     @updatedAt
+  status   MessageStatus @default(PENDING)
+  message  Message       @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+model Email {
+  id       String        @id @unique
+  content  String
+  options  Json?
+  provider String
+  attempts Int           @default(0)
+  response String?
+  created  DateTime      @default(now())
+  updated  DateTime?     @updatedAt
+  status   MessageStatus @default(PENDING)
+  message  Message       @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+model PushNotification {
+  id       String        @id @unique
+  content  String
+  options  Json?
+  provider String
+  attempts Int           @default(0)
+  response String?
+  created  DateTime      @default(now())
+  updated  DateTime?     @updatedAt
+  status   MessageStatus @default(PENDING)
+  message  Message       @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  FAILED
+}

@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.9](https://github.com/Bankole2000/lerna-backend-microservices/compare/v0.0.8...v0.0.9) (2024-06-13)
+
+
+### ✨Features
+
+* better build ([528d8a1](https://github.com/Bankole2000/lerna-backend-microservices/commits/528d8a1b4cb0b3ebc76e866ddeb8ee89b44884d6))
+* common dbal classes ([1fa14ae](https://github.com/Bankole2000/lerna-backend-microservices/commits/1fa14ae2fa51156bf60f09fa73a85934258f97bf))
+* feature flags connecting services ([636b652](https://github.com/Bankole2000/lerna-backend-microservices/commits/636b652d15cfb24fbe4d042596d252d7a70e6959))
+* redis class wip ([ec637bc](https://github.com/Bankole2000/lerna-backend-microservices/commits/ec637bc12bd41a5a13a73f5ef4e753851c30cbaa))
+
+### [0.0.8](https://github.com/Bankole2000/lerna-backend-microservices/compare/v0.0.7...v0.0.8) (2024-05-05)
+
+
+### ✨Features
+
+* added custome pocketbase sdk ([16266c2](https://github.com/Bankole2000/lerna-backend-microservices/commits/16266c24bd0c9c0f4174c94b0dfde0057be19173))
+
 ### [0.0.7](https://github.com/Bankole2000/lerna-backend-microservices/compare/v0.0.6...v0.0.7) (2024-05-01)
 
 
