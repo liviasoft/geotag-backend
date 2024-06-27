@@ -5,9 +5,9 @@ ARG RABBITMQ_EXCHANGE
 
 ADD https://github.com/Bankole2000/lerna-backend-microservices/raw/main/services/pocketbase/custompb /custompb
 
-FROM scratch
+# FROM scratch
 
-COPY --from=downloader /custompb /custompb
+# COPY --from=downloader /custompb /custompb
 
 EXPOSE 8090
 
