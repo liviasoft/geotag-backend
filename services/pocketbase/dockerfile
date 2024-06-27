@@ -3,6 +3,8 @@ FROM alpine:3.20.1 as downloader
 ARG RABBITMQ_URL
 ARG RABBITMQ_EXCHANGE
 
+WORKDIR /
+
 ADD https://github.com/Bankole2000/lerna-backend-microservices/raw/main/services/pocketbase/custompb /custompb
 
 # FROM scratch
@@ -11,4 +13,4 @@ ADD https://github.com/Bankole2000/lerna-backend-microservices/raw/main/services
 
 EXPOSE 8090
 
-CMD ["custompb", "serve", '--http=0.0.0.0:8090']
+CMD ["/custompb", "serve", '--http=0.0.0.0:8090']
