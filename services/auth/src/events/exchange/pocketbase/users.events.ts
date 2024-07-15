@@ -1,8 +1,13 @@
+import { getPocketBase } from '../../../lib/pocketbase';
 import { UserPostgresService } from '../../../modules/postgres/user.pg';
 import { eventTypes } from './common';
 
 const USER_UPDATED = async (data: any) => {
   const upgs = new UserPostgresService({});
+  if (data.avatar) {
+    const pb = getPocketBase(true);
+    data.avatarUrl = pb.files.getUrl(data, data.avatar);
+  }
   const { result: check } = await upgs.findById({ id: data.id });
   const exists = check?.statusType === 'OK';
   const { roles } = data;

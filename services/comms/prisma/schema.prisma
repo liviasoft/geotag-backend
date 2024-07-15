@@ -137,3 +137,44 @@ enum MessageStatus {
   SENT
   FAILED
 }
+
+model Location {
+  id             String   @id @default(cuid())
+  name           String
+  address        String?
+  latitude       Decimal
+  longitude      Decimal
+  description    String?
+  locationType   String?
+  city           Json?
+  deviceData     Json?
+  created        DateTime @default(now())
+  updated        DateTime @updatedAt
+
+  contacts         Contact[]
+  locationTypeData LocationType? @relation(fields: [locationType], references: [id], onDelete: SetNull)
+}
+
+model LocationType {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  iconUrl     String?
+  created     DateTime @default(now())
+  updated     DateTime @updatedAt
+
+  locations Location[]
+}
+
+model Contact {
+  id      String   @id @default(cuid())
+  name    String?
+  address String?
+  email   String?
+  phone   String?
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  locations Location[]
+}

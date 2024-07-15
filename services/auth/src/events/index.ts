@@ -1,5 +1,5 @@
 import { Channel } from 'amqplib';
-import { config } from '../utils/config';
+import { config } from '../config/config';
 import { exchangeEventHandlers } from './exchange/index';
 
 export const serviceEvents = async (channel: Channel): Promise<void> => {

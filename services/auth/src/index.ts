@@ -1,7 +1,7 @@
-import eventsource from 'eventsource';
+// import eventsource from 'eventsource';
 import http from 'http';
 import { app } from './app';
-import { config } from './utils/config';
+import { config } from './config/config';
 import { getChannel, rabbitMQConnect, setChannel } from './lib/rabbitmq';
 import { serviceEvents } from './events';
 import { setIO } from './lib/socketio';
@@ -10,8 +10,8 @@ import { initReverseProxy } from './middleware/reverse-proxy';
 import { setPocketBase } from './lib/pocketbase';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-global.EventSource = eventsource;
+// // @ts-expect-error
+// global.EventSource = eventsource;
 
 const { self } = config;
 
@@ -27,8 +27,8 @@ const PORT = self.port;
 
 httpServer.listen(PORT, async () => {
   await setPocketBase();
-  await initReverseProxy(app);
   await serviceUP();
+  await initReverseProxy(app);
   const channel = await rabbitMQConnect(config.rabbitMQ);
   if (channel) setChannel(channel);
   await serviceEvents(getChannel());

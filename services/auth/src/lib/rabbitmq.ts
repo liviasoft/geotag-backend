@@ -1,5 +1,5 @@
 import amqp, { Channel } from 'amqplib';
-import { config } from '../utils/config';
+import { config } from '../config/config';
 import { ServiceEvent } from '@neoncoder/typed-service-response';
 
 let channel: amqp.Channel;

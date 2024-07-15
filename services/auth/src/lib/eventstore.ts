@@ -8,7 +8,7 @@ import {
   jsonEvent,
 } from '@eventstore/db-client';
 import { v4 as uuidv4 } from 'uuid';
-import { config } from '../utils/config';
+import { config } from '../config/config';
 
 const { uri } = config.eventStore;
 

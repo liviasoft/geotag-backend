@@ -1,17 +1,13 @@
 import { Router } from 'express';
-import { loginRoutes } from './login.routes';
-import { currentUserRoutes } from './currentuser.routes';
-import { verifyRoutes } from './verify.routes';
-import { signupRoutes } from './signup.routes';
-import { sf } from '../middleware/common.middleware';
-import { defaultHandler } from '../controllers/default';
+import { authRoutes } from './auth/index.routes';
+import { locationRoutes } from './locations';
+import { scope } from '../middleware/settings';
+import { settingsRoutes } from './settings/index.routes';
 
 const router = Router();
 
-router.use('/me', currentUserRoutes);
-router.use('/signup', sf('auth.signup'), signupRoutes);
-router.use('/verify', verifyRoutes);
-router.use('/login', sf('auth.login'), loginRoutes);
-router.get('/settings', defaultHandler);
+router.use('/auth', scope('auth'), authRoutes);
+router.use('/locations', locationRoutes);
+router.use('/settings', settingsRoutes);
 
-export { router as authServiceRoutes };
+export { router as appRoutes };

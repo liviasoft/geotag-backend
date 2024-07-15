@@ -1,3 +1,6 @@
+import { CONTACT_EVENTS } from './contacts.events';
+import { LOCATIONTYPE_EVENTS } from './locationTypes.events';
+import { LOCATION_EVENTS } from './locations.events';
 import { RESOURCE_EVENTS } from './rbac/resources.events';
 import { ROLE_PERMISSION_EVENTS } from './rbac/rolePermissions.events';
 import { ROLE_SPECIAL_PERMISSION_EVENTS } from './rbac/roleSpecialPermissions.events';
@@ -28,6 +31,9 @@ const collections = {
   USERFEATUREBANS: 'USERFEATUREBANS',
   USERSPECIALPERMISSIONS: 'USERSPECIALPERMISSIONS',
   USERRESOURCEPERMISSIONS: 'USERRESOURCEPERMISSIONS',
+  LOCATIONS: 'LOCATIONS',
+  LOCATIONTYPES: 'LOCATIONTYPES',
+  CONTACTS: 'CONTACTS',
 };
 
 const recordsEventHandlers = {
@@ -45,6 +51,9 @@ const recordsEventHandlers = {
   [collections.USERFEATUREBANS]: USER_FEATURE_BAN_EVENTS,
   [collections.USERRESOURCEPERMISSIONS]: USER_RESOURCE_PERMISSION_EVENTS,
   [collections.USERSPECIALPERMISSIONS]: USER_SPECIAL_PERMISSION_EVENTS,
+  [collections.LOCATIONS]: LOCATION_EVENTS,
+  [collections.LOCATIONTYPES]: LOCATIONTYPE_EVENTS,
+  [collections.CONTACTS]: CONTACT_EVENTS,
 };
 
 export const RECORDS_EVENTS = async (message: any) => {

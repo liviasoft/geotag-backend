@@ -118,6 +118,28 @@ export interface UserSpecialPermission extends RecordModel {
   active: boolean;
 }
 
+export interface Location extends RecordModel {
+  name: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+  locationType: string;
+  contacts?: string[];
+}
+
+export interface LocationType extends RecordModel {
+  name: string;
+  description?: string;
+  icon: string;
+}
+
+export interface Contact extends RecordModel {
+  name?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+}
+
 export enum collections {
   users = 'users',
   appSettings = 'appSettings',
@@ -132,13 +154,14 @@ export enum collections {
   userResourcePermissions = 'userResourcePermissions',
   userSpecialPermissions = 'userSpecialPermissions',
   userSettings = 'userSettings',
+  locations = 'locations',
+  locationTypes = 'locationTypes',
+  contacts = 'contacts',
 }
 
 export const keys = Object.keys(collections) as unknown as keyof typeof collections;
-//               ^?
 export interface TypedPocketBase extends PocketBase {
   collection(idOrName: 'users'): RecordService<User>;
-  //              ^?
   collection(idOrName: 'appSettings'): RecordService<AppSetting>;
   collection(idOrName: 'features'): RecordService<Feature>;
   collection(idOrName: 'featureFlags'): RecordService<FeatureFlag>;
@@ -151,6 +174,9 @@ export interface TypedPocketBase extends PocketBase {
   collection(idOrName: 'userResourcePermissions'): RecordService<UserResourcePermission>;
   collection(idOrName: 'userSpecialPermissions'): RecordService<UserSpecialPermission>;
   collection(idOrName: 'userSettings'): RecordService<UserSetting>;
+  collection(idOrName: 'locations'): RecordService<Location>;
+  collection(idOrName: 'locationTypes'): RecordService<LocationType>;
+  collection(idOrName: 'contacts'): RecordService<Contact>;
   collection(idOrName: string): RecordService; // default fallback for any other collection
   // collection(idOrName: 'tasks'): RecordService<Task>
 }

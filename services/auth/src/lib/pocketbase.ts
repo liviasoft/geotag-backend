@@ -1,6 +1,6 @@
 import PocketBase from '@neoncoder/pocketbase';
 import { TypedPocketBase } from './pocketbase.types';
-import { config } from '../utils/config';
+import { config } from '../config/config';
 
 let pb: TypedPocketBase;
 let adminPB: TypedPocketBase;

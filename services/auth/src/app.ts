@@ -4,9 +4,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { healthCheckHandler } from './controllers/default';
 import { getUserIfLoggedIn } from './middleware/auth';
-import { getAppScopes, getAppSettings, scope } from './middleware/settings';
-import { authServiceRoutes } from './routes/index.routes';
+import { getAppScopes, getAppSettings } from './middleware/settings';
 import { limiter } from './middleware/reqTimeout';
+import { appRoutes } from './routes/index.routes';
 
 const app = express();
 
@@ -20,7 +20,7 @@ app.use(getUserIfLoggedIn);
 
 app.get('/ping', (_, res) => res.status(200).send('pong'));
 app.get('/health', healthCheckHandler);
-app.use('/api/v1/auth', limiter, scope('auth'), authServiceRoutes);
+app.use('/api/v1', limiter, appRoutes);
 
 app.get('/', async (_, res) => {
   const data = res.locals;

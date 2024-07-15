@@ -1,6 +1,6 @@
 import { CustomErrorByType } from '@neoncoder/typed-service-response';
 import { RedisConnection, connectRedis } from '../lib/redis';
-import { config } from '../utils/config';
+import { config } from '../config/config';
 import { SetOptions } from 'redis';
 import {
   GeoSearchOptions,
@@ -126,9 +126,7 @@ export default class CacheService {
    */
   async hSet(data: Record<string, string | number>, key?: string, opt?: TKeyFormatOptions) {
     this.assertKeyExists(key, opt);
-    console.log({ key, data });
     this.result = await (await this.connect()).client.hSet(this.key, Object.entries(data));
-    console.log({ result: this.result, key: this.key });
     return this;
   }
 

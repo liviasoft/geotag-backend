@@ -25,9 +25,9 @@ export type RedisConnection = ReturnType<typeof connectRedis>;
  */
 export const serviceUP = async (): Promise<void> => {
   const redis = new CacheService();
-  const { name, host, publicUrl, queue } = config.self;
+  const { name, host, publicUrl, queue, basePath } = config.self;
   const scopeToService = false;
-  const serviceData = JSON.stringify({ name, host, publicUrl, queue });
+  const serviceData = JSON.stringify({ name, host, publicUrl, queue, basePath });
   redis.formatKey({ scopeToService }, 'services');
   const existing = (await redis.hGet(name)).result;
   if (existing) {

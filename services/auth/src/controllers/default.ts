@@ -63,7 +63,7 @@ export const defaultHandler = async (_: Request, res: Response) => {
 };
 
 export const placeholderHandler = async (_: Request, res: Response) => {
-  const sr = Rez.OK({ message: 'Not yet implemented', data: { meta: getPocketBase().settings.getAll({}) } });
+  const sr = Rez.OK({ message: 'Not yet implemented', data: { meta: getPocketBase(true).settings.getAll({}) } });
   return res.status(sr.statusCode).send(sr);
 };
 

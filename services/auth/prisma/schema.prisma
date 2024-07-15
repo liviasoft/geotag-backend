@@ -25,7 +25,8 @@ model AppSetting {
   objectList  Json[]
   created     DateTime  @default(now())
   updated     DateTime? @updatedAt
-  type        DataType
+
+  type DataType
 }
 
 enum DataType {
@@ -38,28 +39,40 @@ enum DataType {
 }
 
 model User {
-  id                  String                   @id @default(cuid())
-  email               String?                  @unique
-  emailVisibility     Boolean?                 @default(false)
-  verified            Boolean?                 @default(false) @db.Boolean
-  username            String?                  @unique
-  phone               String?                  @unique
-  phoneData           Json?
-  avatar              String?
-  avatarUrl           String?                
-  created             DateTime                 @default(now())
-  updated             DateTime?                @updatedAt
+  id              String    @id @default(cuid())
+  email           String?   @unique
+  emailVisibility Boolean?  @default(false)
+  verified        Boolean?  @default(false) @db.Boolean
+  username        String?   @unique
+  phone           String?   @unique
+  phoneData       Json?
+  avatar          String?
+  avatarUrl       String?
+  created         DateTime  @default(now())
+  updated         DateTime? @updatedAt
+
   roles               Role[]                   @relation("UserHasRoles")
   featureBans         UserFeatureBan[]
   resourcePermissions UserResourcePermission[]
   specialPermissions  UserSpecialPermission[]
+  sessions            Session[]
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  ip        String
+  user      String?
+  loginType String
+  created   DateTime  @default(now())
+  updated   DateTime? @updatedAt
+
+  userData User? @relation(fields: [user], references: [id])
 }
 
 model UserSetting {
   id          String    @id @default(cuid())
   name        String    @unique
   description String?
-  type        DataType
   boolean     Boolean?  @default(false)
   number      Int?
   string      String?
@@ -68,47 +81,52 @@ model UserSetting {
   objectList  Json[]
   created     DateTime  @default(now())
   updated     DateTime? @updatedAt
+
+  type DataType
 }
 
 model Role {
-  id                 String                  @id @default(cuid())
-  name               String                  @unique
-  description        String?
-  isDefault          Boolean                 @default(false) @db.Boolean
-  requiresAuth       Boolean                 @default(false) @db.Boolean
-  active             Boolean                 @default(true) @db.Boolean
-  created            DateTime                @default(now())
-  updated            DateTime?               @updatedAt
+  id           String    @id @default(cuid())
+  name         String    @unique
+  description  String?
+  isDefault    Boolean   @default(false) @db.Boolean
+  requiresAuth Boolean   @default(false) @db.Boolean
+  active       Boolean   @default(true) @db.Boolean
+  created      DateTime  @default(now())
+  updated      DateTime? @updatedAt
+
   users              User[]                  @relation("UserHasRoles")
   permissions        RolePermission[]
   specialPermissions RoleSpecialPermission[]
 }
 
 model Resource {
-  id              String                   @id @default(cuid())
-  name            String                   @unique
-  description     String?
-  created         DateTime                 @default(now())
-  updated         DateTime?                @updatedAt
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+
   rolePermissions RolePermission[]
   userPermissions UserResourcePermission[]
 }
 
 model RolePermission {
-  id           String    @id @default(cuid())
-  role         String
-  resource     String
-  create       Boolean
-  readOwn      Boolean
-  readAny      Boolean
-  updateOwn    Boolean
-  updateAny    Boolean
-  deleteOwn    Boolean
-  deleteAny    Boolean
-  created      DateTime  @default(now())
-  updated      DateTime? @updatedAt
-  roleData     Role      @relation(fields: [role], references: [id], onDelete: Cascade)
-  resourceData Resource  @relation(fields: [resource], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  role      String
+  resource  String
+  create    Boolean
+  readOwn   Boolean
+  readAny   Boolean
+  updateOwn Boolean
+  updateAny Boolean
+  deleteOwn Boolean
+  deleteAny Boolean
+  created   DateTime  @default(now())
+  updated   DateTime? @updatedAt
+
+  roleData     Role     @relation(fields: [role], references: [id], onDelete: Cascade)
+  resourceData Resource @relation(fields: [resource], references: [id], onDelete: Cascade)
 
   @@unique([role, resource])
 }
@@ -122,19 +140,21 @@ model Scope {
   active      Boolean
   created     DateTime  @default(now())
   updated     DateTime? @updatedAt
-  features    Feature[]
+
+  features Feature[]
 
   @@unique([host, route])
 }
 
 model Feature {
-  id           String           @id @default(cuid())
-  name         String           @unique
-  description  String?
-  active       Boolean
-  scope        String
-  created      DateTime         @default(now())
-  updated      DateTime?        @updatedAt
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  active      Boolean
+  scope       String
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+
   scopeData    Scope            @relation(fields: [scope], references: [id], onDelete: Cascade)
   featureFlags FeatureFlag[]
   userBans     UserFeatureBan[]
@@ -148,6 +168,7 @@ model FeatureFlag {
   active      Boolean
   created     DateTime  @default(now())
   updated     DateTime? @updatedAt
+
   featureData Feature   @relation(fields: [feature], references: [id], onDelete: Cascade)
   service     Service[] @default([BACKEND])
 
@@ -155,24 +176,26 @@ model FeatureFlag {
 }
 
 model SpecialPermission {
-  id          String                  @id @default(cuid())
-  name        String                  @unique
+  id          String    @id @default(cuid())
+  name        String    @unique
   description String?
-  active      Boolean                 @default(false)
-  created     DateTime                @default(now())
-  updated     DateTime?               @updatedAt
-  roles       RoleSpecialPermission[]
-  users       UserSpecialPermission[]
+  active      Boolean   @default(false)
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+
+  roles RoleSpecialPermission[]
+  users UserSpecialPermission[]
 }
 
 model RoleSpecialPermission {
-  id                    String            @id @default(cuid())
-  role                  String
-  specialPermission     String
-  description           String?
-  active                Boolean           @default(false)
-  created               DateTime          @default(now())
-  updated               DateTime?         @updatedAt
+  id                String    @id @default(cuid())
+  role              String
+  specialPermission String
+  description       String?
+  active            Boolean   @default(false)
+  created           DateTime  @default(now())
+  updated           DateTime? @updatedAt
+
   roleData              Role?             @relation(fields: [role], references: [id], onDelete: Cascade)
   specialPermissionData SpecialPermission @relation(fields: [specialPermission], references: [id], onDelete: Cascade)
 
@@ -180,45 +203,48 @@ model RoleSpecialPermission {
 }
 
 model UserFeatureBan {
-  id          String    @id @default(cuid())
-  user        String
-  feature     String
-  expiresAt   DateTime?
-  created     DateTime  @default(now())
-  updated     DateTime? @updatedAt
-  userData    User      @relation(fields: [user], references: [id], onDelete: Cascade)
-  featureData Feature   @relation(fields: [feature], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  user      String
+  feature   String
+  expiresAt DateTime?
+  created   DateTime  @default(now())
+  updated   DateTime? @updatedAt
+
+  userData    User    @relation(fields: [user], references: [id], onDelete: Cascade)
+  featureData Feature @relation(fields: [feature], references: [id], onDelete: Cascade)
 
   @@unique([user, feature])
 }
 
 model UserResourcePermission {
-  id           String    @id @default(cuid())
-  user         String
-  resource     String
-  create       Boolean
-  updateOwn    Boolean
-  updateAny    Boolean
-  deleteOwn    Boolean
-  deleteAny    Boolean
-  readOwn      Boolean
-  readAny      Boolean
-  created      DateTime  @default(now())
-  updated      DateTime? @updatedAt
-  userData     User      @relation(fields: [user], references: [id], onDelete: Cascade)
-  resourceData Resource  @relation(fields: [resource], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  user      String
+  resource  String
+  create    Boolean
+  updateOwn Boolean
+  updateAny Boolean
+  deleteOwn Boolean
+  deleteAny Boolean
+  readOwn   Boolean
+  readAny   Boolean
+  created   DateTime  @default(now())
+  updated   DateTime? @updatedAt
+
+  userData     User     @relation(fields: [user], references: [id], onDelete: Cascade)
+  resourceData Resource @relation(fields: [resource], references: [id], onDelete: Cascade)
 
   @@unique([user, resource])
 }
 
 model UserSpecialPermission {
-  id                    String            @id @default(cuid())
-  user                  String
-  specialPermission     String
-  description           String?
-  active                Boolean           @default(false)
-  created               DateTime          @default(now())
-  updated               DateTime?         @updatedAt
+  id                String    @id @default(cuid())
+  user              String
+  specialPermission String
+  description       String?
+  active            Boolean   @default(false)
+  created           DateTime  @default(now())
+  updated           DateTime? @updatedAt
+
   userData              User              @relation(fields: [user], references: [id], onDelete: Cascade)
   specialPermissionData SpecialPermission @relation(fields: [specialPermission], references: [id], onDelete: Cascade)
 
@@ -228,4 +254,45 @@ model UserSpecialPermission {
 enum Service {
   BACKEND
   FRONTEND
+}
+
+model Location {
+  id             String   @id @default(cuid())
+  name           String
+  address        String?
+  latitude       Decimal
+  longitude      Decimal
+  description    String?
+  locationType   String?
+  city           Json?
+  deviceData     Json?
+  created        DateTime @default(now())
+  updated        DateTime @updatedAt
+
+  contacts         Contact[]
+  locationTypeData LocationType? @relation(fields: [locationType], references: [id], onDelete: SetNull)
+}
+
+model LocationType {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  iconUrl     String?
+  created     DateTime @default(now())
+  updated     DateTime @updatedAt
+
+  locations Location[]
+}
+
+model Contact {
+  id      String   @id @default(cuid())
+  name    String?
+  address String?
+  email   String?
+  phone   String?
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  locations Location[]
 }

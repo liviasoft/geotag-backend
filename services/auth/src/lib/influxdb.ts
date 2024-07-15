@@ -1,5 +1,5 @@
 import { InfluxDB, Point } from '@influxdata/influxdb-client';
-import { config } from '../utils/config';
+import { config } from '../config/config';
 
 const { token, url, org, bucket } = config.influxdb;
 

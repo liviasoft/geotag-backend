@@ -1,5 +1,5 @@
 import db, { Driver } from 'neo4j-driver';
-import { config } from '../utils/config';
+import { config } from '../config/config';
 
 let driver: Driver;
 

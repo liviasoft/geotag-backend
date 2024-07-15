@@ -29,7 +29,7 @@
     "@bull-board/express": "^5.16.0",
     "@eventstore/db-client": "^6.1.0",
     "@influxdata/influxdb-client": "^1.33.2",
-    "@neoncoder/geolocation-data": "^0.0.3",
+    "@neoncoder/geolocation-data": "^0.0.7",
     "@neoncoder/pocketbase": "^0.0.1",
     "@neoncoder/typed-service-response": "^0.0.7",
     "@neoncoder/validator-utils": "^0.0.11",

@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AppSetting {
+  id          String    @unique
+  name        String    @id @unique
+  description String?
+  boolean     Boolean?  @default(false)
+  number      Int?
+  string      String?
+  list        Json?
+  object      Json?
+  objectList  Json[]
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+  type        DataType
+}
+
+enum DataType {
+  boolean
+  number
+  string
+  list
+  object
+  objectList
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String?   @unique
+  emailVisibility Boolean?  @default(false)
+  verified        Boolean?  @default(false) @db.Boolean
+  username        String?   @unique
+  phone           String?   @unique
+  phoneData       Json?
+  avatar          String?
+  avatarUrl       String?
+  created         DateTime  @default(now())
+  updated         DateTime? @updatedAt
+  notes           Note[]
+}
+
+model UserSetting {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  type        DataType
+  boolean     Boolean?  @default(false)
+  number      Int?
+  string      String?
+  list        Json?
+  object      Json?
+  objectList  Json[]
+  created     DateTime  @default(now())
+  updated     DateTime? @updatedAt
+}
+
+model Note {
+  id         String @id @default(cuid())
+  authorId   String
+  authorData User   @relation(fields: [authorId], references: [id])
+  note       String
+}
+
+model Location {
+  id             String   @id @default(cuid())
+  name           String
+  address        String?
+  latitude       Decimal
+  longitude      Decimal
+  description    String?
+  locationType   String?
+  city           Json?
+  deviceData     Json?
+  created        DateTime @default(now())
+  updated        DateTime @updatedAt
+
+  contacts         Contact[]
+  locationTypeData LocationType? @relation(fields: [locationType], references: [id], onDelete: SetNull)
+}
+
+model LocationType {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  iconUrl     String?
+  created     DateTime @default(now())
+  updated     DateTime @updatedAt
+
+  locations Location[]
+}
+
+model Contact {
+  id      String   @id @default(cuid())
+  name    String?
+  address String?
+  email   String?
+  phone   String?
+  created DateTime @default(now())
+  updated DateTime @updatedAt
+
+  locations Location[]
+}

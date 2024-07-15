@@ -1,11 +1,11 @@
 export const defaultConfig = {
   appName: 'APPNAME',
   self: {
-    port: 3002,
+    port: 3003,
     name: 'comms',
-    host: 'http://localhost:3002',
+    host: 'http://localhost:3003',
     basePath: 'api/v1',
-    publicUrl: 'http://localhost:3002/api/v1/comms',
+    publicUrl: 'http://localhost:3003/api/v1/comms',
     queue: 'appname-comms-queue',
     jwtSecret: 'secret',
     emoji: '🔐',

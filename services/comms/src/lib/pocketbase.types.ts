@@ -48,10 +48,26 @@ export interface MessageTemplate extends RecordModel {
   pushNotificationTemplate?: string;
 }
 
+export interface Location extends RecordModel {
+  name: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+  locationType: string;
+}
+
+export interface LocationType extends RecordModel {
+  name: string;
+  description?: string;
+  icon: string;
+}
+
 export enum collections {
   users = 'users',
   appSettings = 'appSettings',
   userSettings = 'userSettings',
+  locations = 'locations',
+  locationTypes = 'locationTypes',
 }
 
 export const keys = Object.keys(collections) as unknown as keyof typeof collections;
@@ -61,6 +77,8 @@ export interface TypedPocketBase extends PocketBase {
   collection(idOrName: 'appSettings'): RecordService<AppSetting>;
   collection(idOrName: 'userSettings'): RecordService<UserSetting>;
   collection(idOrName: 'users'): RecordService<MessageTemplate>;
+  collection(idOrName: 'locations'): RecordService<Location>;
+  collection(idOrName: 'locationTypes'): RecordService<LocationType>;
   collection(idOrName: string): RecordService; // default fallback for any other collection
   // collection(idOrName: 'tasks'): RecordService<Task>
 }
