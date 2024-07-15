@@ -26,6 +26,7 @@ io.on('connection', (socket) => {
 const PORT = self.port;
 
 httpServer.listen(PORT, async () => {
+  console.log({ config });
   await setPocketBase();
   await serviceUP();
   await initReverseProxy(app);
