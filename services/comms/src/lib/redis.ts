@@ -6,6 +6,7 @@ import { events } from '../events/eventTypes';
 let redisClient: RedisConnection;
 
 export const connectRedis = (url = config.redis.url) => {
+  console.log({ redisURL: url });
   return createClient({ url }).on('error', (err) => console.log('Redis Client Error', err));
 };
 
