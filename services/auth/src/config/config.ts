@@ -10,15 +10,11 @@ export const config = parsed
         port: parsed.PORT ?? process.env.PORT,
         name: parsed.SERVICE_NAME ?? process.env.SERVICE_NAME,
         host: parsed.SERVICE_HOST ?? process.env.SERVICE_HOST,
-        basePath: parsed
-          ? `${parsed.BASE_PATH}/${parsed.SERVICE_NAME}`.toLowerCase()
-          : `${process.env.BASE_PATH}/${process.env.SERVICE_NAME}`.toLowerCase(),
-        publicUrl: parsed
-          ? `${parsed.SERVICE_HOST}/${parsed.BASE_PATH}/${parsed.SERVICE_NAME}`.toLowerCase()
-          : `${process.env.SERVICE_HOST}/${process.env.BASE_PATH}/${process.env.SERVICE_NAME}`.toLowerCase(),
-        queue: parsed
-          ? `${parsed.APPNAME}-${parsed.SERVICE_NAME}-queue`
-          : `${process.env.APPNAME}-${process.env.SERVICE_NAME}-queue`,
+        basePath:
+          `${parsed.BASE_PATH ?? process.env.BASE_PATH}/${parsed.SERVICE_NAME ?? process.env.SERVICE_NAME}`.toLowerCase(),
+        publicUrl:
+          `${parsed.SERVICE_HOST ?? process.env.SERVICE_HOST}/${parsed.BASE_PATH ?? process.env.BASE_PATH}/${parsed.SERVICE_NAME ?? process.env.SERVICE_NAME}`.toLowerCase(),
+        queue: `${parsed.APPNAME ?? process.env.APPNAME}-${parsed.SERVICE_NAME ?? process.env.SERVICE_NAME}-queue`,
         jwtSecret: parsed.JWT_SECRET ?? process.env.JWT_SECRET,
         emoji: parsed.EMOJI ?? process.env.EMOJI,
         accessTokenTTL: parsed.ACCESS_TOKEN_TTL ?? process.env.ACCESS_TOKEN_TTL,
@@ -35,13 +31,9 @@ export const config = parsed
       },
       rabbitMQ: {
         url: parsed.RABBITMQ_URL ?? process.env.RABBITMQ_URL,
-        queue: parsed
-          ? `${parsed.APPNAME}-${parsed.SERVICE_NAME}-queue`
-          : `${process.env.APPNAME}-${process.env.SERVICE_NAME}-queue`,
+        queue: `${parsed.APPNAME ?? process.env.APPNAME}-${parsed.SERVICE_NAME ?? process.env.SERVICE_NAME}-queue`,
         exchange: parsed.APPNAME ?? process.env.APPNAME,
-        exqueue: parsed
-          ? `${parsed.APPNAME}-${parsed.SERVICE_NAME}-x-queue`
-          : `${process.env.APPNAME}-${process.env.SERVICE_NAME}-x-queue`,
+        exqueue: `${parsed.APPNAME ?? process.env.APPNAME}-${parsed.SERVICE_NAME ?? process.env.SERVICE_NAME}-x-queue`,
       },
       pocketbase: {
         url: parsed.POCKETBASE_URL ?? process.env.POCKETBASE_URL,
