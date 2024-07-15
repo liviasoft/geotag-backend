@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "build": "npm run migrate:deploy && npx tsc --build",
+    "migrate:deploy": "npx prisma migrate deploy",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
