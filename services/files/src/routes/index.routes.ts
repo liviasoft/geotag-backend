@@ -4,6 +4,7 @@ import { defaultHanlder, parseTestHandler, tcpConnectionTestHandler } from '../c
 const router = Router();
 
 router.get('/', defaultHanlder);
+router.get('/ping', (_, res) => res.status(200).send('Files Service pong'));
 router.get('/test', parseTestHandler);
 router.get('/tcp', tcpConnectionTestHandler);
 

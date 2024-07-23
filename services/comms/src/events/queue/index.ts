@@ -8,6 +8,7 @@ export const queueEventHandlers = async (msg: any, channel: Channel) => {
     case 'auth':
       {
         const result = await authJobsHandler(message);
+        console.log(result.message);
         if (result.statusType === 'OK') {
           channel.ack(msg);
         }
