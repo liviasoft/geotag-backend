@@ -9,7 +9,8 @@ export const createLocationHandler = async (req: Request, res: Response) => {
   const { name, longitude, latitude, locationType, deviceData, description, city, address, contacts } = req.body;
   console.log({ name, longitude, latitude, locationType, deviceData, description, city, address, contacts });
   const locpbs = new LocationPocketbaseService({ isAdmin: true });
-  const result = (await locpbs.createLocation({ createData: req.body })).result! as TStatus<'location'>;
+  const result = (await locpbs.createLocation({ createData: { ...req.body, addedBy: res.locals.authUserId } }))
+    .result! as TStatus<'location'>;
   const sr = statusTypes.get(result.statusType)!({ ...result });
   return res.status(sr.statusCode).send(sr);
 };

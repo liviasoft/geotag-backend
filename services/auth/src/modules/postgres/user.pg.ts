@@ -2,6 +2,7 @@ import { Prisma, Role, User, UserFeatureBan, UserResourcePermission, UserSpecial
 import { PostgresDBService, TPagination } from './common.pg';
 import { CustomErrorByType, statusTMap } from '@neoncoder/typed-service-response';
 import { TRoleWithIncludes } from './settings/roles.pg';
+import { SessionPostgresService } from './session.pg';
 
 export type TUserWithIncludes = User & {
   roles?: Role[] | TRoleWithIncludes[];
@@ -33,10 +34,12 @@ export class UserPostgresService extends PostgresDBService<'user' | 'users', Use
     'created',
     'updated',
   ];
+  sessionService: SessionPostgresService;
 
   constructor({ softDelete = false, user = undefined }: { softDelete?: boolean; user?: User }) {
     super({ softDelete });
     this.user = user ?? null;
+    this.sessionService = new SessionPostgresService({});
   }
 
   async getList({ page = 1, limit = 25, filters, orderBy, include }: TUserFilters & TPagination) {
@@ -139,6 +142,15 @@ export class UserPostgresService extends PostgresDBService<'user' | 'users', Use
       this.formatError(error);
     }
     return this;
+  }
+
+  async createUserSession({ ip, loginType }: { ip: string; loginType: 'EMAIL' | 'PHONE' }) {
+    try {
+      this.assertUserExists();
+      return this.sessionService.create({ ip, loginType, user: this.user.id });
+    } catch (error: any) {
+      this.formatError(error);
+    }
   }
 
   async delete(): Promise<this> {

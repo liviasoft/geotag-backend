@@ -81,6 +81,7 @@ export const getLocationCountsHandler = async (req: Request, res: Response) => {
       OR: [
         { name: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
         {
           locationTypeData: {
             OR: [
@@ -96,11 +97,15 @@ export const getLocationCountsHandler = async (req: Request, res: Response) => {
 
   const locations = locationData.map((l) => {
     const { city } = l;
-    const { name: cityName, state_name: state, country_name: country } = city as JsonObject;
-    return { name: l.name, type: 'Location', value: l.id, city: cityName, state, country };
+    if (city) {
+      const { name: cityName, state_name: state, country_name: country } = city as JsonObject;
+      return { name: l.name, type: 'Location', value: l.id, city: cityName, state, country };
+    } else {
+      return { name: l.name, type: 'Location', value: l.id, city: 'Unknown', state: 'Unknown', country: 'Unknown' };
+    }
   });
   const sr = statusTypes.get('OK')!({ data: { results: [...cities, ...states, ...countries, ...locations] } });
-  return res.status(sr.statusCode).json([...cities, ...states, ...countries]);
+  return res.status(sr.statusCode).json([...locations, ...cities, ...states, ...countries]);
 };
 
 export const getSavedLocationsHandler = async (req: Request, res: Response) => {

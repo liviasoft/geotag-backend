@@ -17,6 +17,7 @@ export class LocationPocketbaseService extends PBService<'location' | 'locations
     'city',
     'deviceData',
     'contacts',
+    'addedBy',
     'created',
     'updated',
   ];

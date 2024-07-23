@@ -2,16 +2,16 @@ import { ContactPostgresService } from '../../../modules/postgres/contact.pg';
 import { eventTypes } from './common';
 
 const CONTACT_UPDATED = async (data: any) => {
-  const lpgs = new ContactPostgresService({});
-  const { result: check } = await lpgs.findById({ id: data.id });
+  const cpgs = new ContactPostgresService({});
+  const { result: check } = await cpgs.findById({ id: data.id });
   const exists = check?.statusType === 'OK';
-  const { result } = exists ? await lpgs.update(data) : await lpgs.create(data);
+  const { result } = exists ? await cpgs.update(data) : await cpgs.create(data);
   return result;
 };
 
 const CONTACT_DELETED = async (data: any) => {
-  const uspgs = new ContactPostgresService({});
-  const { result } = await (await uspgs.findById({ id: data.id })).delete();
+  const cspgs = new ContactPostgresService({});
+  const { result } = await (await cspgs.findById({ id: data.id })).delete();
   return result;
 };
 

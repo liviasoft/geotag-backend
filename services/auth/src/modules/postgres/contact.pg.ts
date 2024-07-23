@@ -16,7 +16,7 @@ export type TContactFilters = {
 
 export class ContactPostgresService extends PostgresDBService<'contact' | 'contacts', Contact> {
   contact: Contact | null;
-  fields = ['id', 'email', 'phone', 'name', 'address', 'created', 'updated'];
+  fields = ['id', 'email', 'phone', 'name', 'address', 'addedBy', 'created', 'updated'];
 
   constructor({ softDelete = false, contact = undefined }: { softDelete?: boolean; contact?: Contact }) {
     super({ softDelete });

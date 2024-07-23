@@ -56,15 +56,19 @@ model User {
   resourcePermissions UserResourcePermission[]
   specialPermissions  UserSpecialPermission[]
   sessions            Session[]
+  addedLocations      Location[]
+  addedContacts       Contact[]
 }
 
 model Session {
   id        String    @id @default(cuid())
   ip        String
   user      String?
+  csrfToken String?   @default(cuid())
   loginType String
   created   DateTime  @default(now())
   updated   DateTime? @updatedAt
+  expiresAt DateTime?
 
   userData User? @relation(fields: [user], references: [id])
 }
@@ -266,10 +270,12 @@ model Location {
   locationType   String?
   city           Json?
   deviceData     Json?
+  addedBy        String?
   created        DateTime @default(now())
   updated        DateTime @updatedAt
 
   contacts         Contact[]
+  addedByData      User? @relation(fields: [addedBy], references: [id])
   locationTypeData LocationType? @relation(fields: [locationType], references: [id], onDelete: SetNull)
 }
 
@@ -293,6 +299,8 @@ model Contact {
   phone   String?
   created DateTime @default(now())
   updated DateTime @updatedAt
+  addedBy String?
 
+  addedByData User? @relation(fields: [addedBy], references: [id])
   locations Location[]
 }

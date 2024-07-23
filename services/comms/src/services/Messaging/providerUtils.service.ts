@@ -34,7 +34,14 @@ export const selectProviderConfig = async (type: TMessageType, provider: string)
   if (type === 'EMAIL') {
     switch (provider) {
       case 'AWS_SES':
-        return {};
+        return {
+          host: 'email-smtp.ap-northeast-1.amazonaws.com',
+          port: 587,
+          auth: {
+            user: 'amazonsesuserid',
+            pass: 'amazonsesuserpass',
+          },
+        };
       case 'ETHEREAL':
         return {
           host: 'smtp.ethereal.email',

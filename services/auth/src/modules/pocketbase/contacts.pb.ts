@@ -11,7 +11,7 @@ export class ContactPocketbaseService extends PBService<'contact' | 'contacts', 
 
   token: string | null;
 
-  fields = ['id', 'name', 'email', 'phone', 'address', 'created', 'updated'];
+  fields = ['id', 'name', 'email', 'phone', 'address', 'addedBy', 'created', 'updated'];
 
   constructor({ isAdmin = false, contact, token }: { isAdmin?: boolean; contact?: Contact; token?: string }) {
     const pocketbaseInstance = isAdmin ? getPocketBase(isAdmin) : undefined;
@@ -55,7 +55,10 @@ export class ContactPocketbaseService extends PBService<'contact' | 'contacts', 
   }) {
     try {
       let filter = '';
-      getObjectKeys(fieldValue).forEach((f) => (filter += `${f}="${fieldValue[f]}"`));
+      getObjectKeys(fieldValue).forEach(
+        (f, i) => (filter += i === 0 ? `${f}="${fieldValue[f]}"` : ` || ${f}="${fieldValue[f]}"`),
+      );
+      console.log({ filter });
       this.contact = await this.getFirstListItem<Contact>({ filter, options });
       this.result = statusTMap.get('OK')!<'contact', Contact>({
         data: { contact: this.contact, meta: { ...this.requestMeta(options) } },

@@ -13,16 +13,21 @@ export const zodValidate =
       });
       return next();
     } catch (error: any) {
+      const errorFields: { [key: string]: any } = {};
       const sr: ServiceResponse<any> = statusTypes.get('BadRequest')!({
         message: `${schemaName} validation failed`,
       });
       if (error instanceof ZodError) {
-        sr.error = error['issues'].map(({ path, message, code }: ZodIssue) => ({
+        const details = error['issues'].map(({ path, message, code }: ZodIssue) => ({
           field: path[path.length - 1],
           code,
           path,
           message,
         }));
+        details.forEach((d) => {
+          errorFields[d.field] = d.message;
+        });
+        sr.error = { ...errorFields, details };
       } else {
         sr.error = error;
       }

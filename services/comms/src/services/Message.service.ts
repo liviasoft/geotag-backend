@@ -123,6 +123,7 @@ export class MessagingService {
               }
               console.log({ sendResult });
             } catch (error) {
+              console.log({ error });
               if (type === 'EMAIL') {
                 await tx.email.update({
                   where: { id: messageId },
