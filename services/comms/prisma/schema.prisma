@@ -25,6 +25,7 @@ model AppSetting {
   objectList  Json[]
   created     DateTime  @default(now())
   updated     DateTime? @updatedAt
+
   type        DataType
 }
 
@@ -49,6 +50,9 @@ model User {
   avatarUrl       String?
   created         DateTime  @default(now())
   updated         DateTime? @updatedAt
+
+  addedLocations      Location[]
+  addedContacts       Contact[]
   messages        Message[]
 }
 
@@ -56,7 +60,6 @@ model UserSetting {
   id          String    @id @default(cuid())
   name        String    @unique
   description String?
-  type        DataType
   boolean     Boolean?  @default(false)
   number      Int?
   string      String?
@@ -65,6 +68,8 @@ model UserSetting {
   objectList  Json[]
   created     DateTime  @default(now())
   updated     DateTime? @updatedAt
+
+  type        DataType
 }
 
 model MessageTemplate {
@@ -77,6 +82,7 @@ model MessageTemplate {
   pushNotificationTemplate String?
   created                  DateTime  @default(now())
   updated                  DateTime? @updatedAt
+
   messages                 Message[]
 }
 
@@ -87,6 +93,7 @@ model Message {
   recipientData     User              @relation(fields: [recipient], references: [id], onDelete: Cascade)
   created           DateTime          @default(now())
   updated           DateTime?         @updatedAt
+
   sms               SMS?
   email             Email?
   pushNotification  PushNotification?
@@ -102,6 +109,7 @@ model SMS {
   response String?
   created  DateTime      @default(now())
   updated  DateTime?     @updatedAt
+
   status   MessageStatus @default(PENDING)
   message  Message       @relation(fields: [id], references: [id], onDelete: Cascade)
 }
@@ -115,6 +123,7 @@ model Email {
   response String?
   created  DateTime      @default(now())
   updated  DateTime?     @updatedAt
+
   status   MessageStatus @default(PENDING)
   message  Message       @relation(fields: [id], references: [id], onDelete: Cascade)
 }
@@ -128,6 +137,7 @@ model PushNotification {
   response String?
   created  DateTime      @default(now())
   updated  DateTime?     @updatedAt
+
   status   MessageStatus @default(PENDING)
   message  Message       @relation(fields: [id], references: [id], onDelete: Cascade)
 }
@@ -148,10 +158,12 @@ model Location {
   locationType   String?
   city           Json?
   deviceData     Json?
+  addedBy        String?
   created        DateTime @default(now())
   updated        DateTime @updatedAt
 
   contacts         Contact[]
+  addedByData      User? @relation(fields: [addedBy], references: [id])
   locationTypeData LocationType? @relation(fields: [locationType], references: [id], onDelete: SetNull)
 }
 
@@ -173,8 +185,10 @@ model Contact {
   address String?
   email   String?
   phone   String?
+  addedBy String?
   created DateTime @default(now())
   updated DateTime @updatedAt
 
+  addedByData User? @relation(fields: [addedBy], references: [id])
   locations Location[]
 }

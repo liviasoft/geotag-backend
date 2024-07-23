@@ -1,9 +1,11 @@
 import { ServiceEvent, ServiceResponse, statusTypes } from '@neoncoder/typed-service-response';
 import { getServiceEvents } from '../../lib/redis';
-import { USER_SIGNED_UP_VIA_EMAIL } from './handlers/auth.handlers';
+import { USER_LOGGED_IN, USER_SIGNED_UP_VIA_EMAIL, USER_SIGNED_UP_VIA_PHONE } from './handlers/auth.handlers';
 
 const authJobs: { [key: string]: (message: ServiceEvent<any>) => Promise<ServiceResponse<any>> } = {
   USER_SIGNED_UP_VIA_EMAIL,
+  USER_SIGNED_UP_VIA_PHONE,
+  USER_LOGGED_IN,
 };
 
 export const authJobsHandler = async (message: ServiceEvent<any>) => {

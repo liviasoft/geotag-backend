@@ -15,7 +15,20 @@ export type TLocationFilters = {
 
 export class LocationPostgresService extends PostgresDBService<'location' | 'locations', Location> {
   location: Location | null;
-  fields = ['id', 'name', 'longitude', 'latitude', 'description', 'locationType', 'created', 'updated'];
+  fields = [
+    'id',
+    'name',
+    'address',
+    'longitude',
+    'latitude',
+    'description',
+    'locationType',
+    'city',
+    'deviceData',
+    'addedBy',
+    'created',
+    'updated',
+  ];
 
   constructor({ softDelete = false, location = undefined }: { softDelete?: boolean; location?: Location }) {
     super({ softDelete });

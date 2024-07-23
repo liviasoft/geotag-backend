@@ -89,3 +89,7 @@ export const USER_SIGNED_UP_VIA_PHONE = async (message: ServiceEvent<any>): Prom
   }
   return statusTypes.get('OK')!({});
 };
+
+export const USER_LOGGED_IN = async (message: ServiceEvent<any>): Promise<ServiceResponse<any>> => {
+  return statusTypes.get('OK')!({ message: `unhandled event ${message.type}` });
+};

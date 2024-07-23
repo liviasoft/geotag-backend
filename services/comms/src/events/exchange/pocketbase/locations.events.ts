@@ -5,6 +5,13 @@ const LOCATION_UPDATED = async (data: any) => {
   const uspgs = new LocationPostgresService({});
   const { result: check } = await uspgs.findById({ id: data.id });
   const exists = check?.statusType === 'OK';
+  const { contacts } = data;
+  if (contacts)
+    data.contacts = exists
+      ? contacts.length
+        ? { set: contacts.map((x: string) => ({ id: x })) }
+        : { set: [] }
+      : { connect: contacts.map((x: string) => ({ id: x })) };
   const { result } = exists ? await uspgs.update(data) : await uspgs.create(data);
   return result;
 };
