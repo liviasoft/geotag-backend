@@ -73,7 +73,11 @@ export const emailLoginHandler = async (req: Request, res: Response) => {
   const newSession = session.data.session as Session;
   console.log({ newSession });
   db.location.findFirst({ where: { city: { path: ['id'], equals: '1234' } } });
-  console.log({ pbSettings: (await adminpb.settings.getAll()).recordAuthToken.duration, password });
+  console.log({
+    pbSettings: (await adminpb.settings.getAll()).recordAuthToken.duration,
+    password,
+    pbAuthSettings: await adminpb.settings.getAll(),
+  });
   const { csrfToken } = newSession;
   const tokenData = { userId: pbUser.id, sessionId: newSession.id, pbToken, csrfToken };
   console.log({ tokenData });

@@ -4,6 +4,8 @@ import { USERSETTING_EVENTS } from './settings/userSettings.events';
 import { LOCATION_EVENTS } from './locations.events';
 import { LOCATIONTYPE_EVENTS } from './locationTypes.events';
 import { CONTACT_EVENTS } from './contacts.events';
+import { MEASUREMENTFILE_EVENTS } from './measurementFiles.events';
+import { LOCATIONNOTE_EVENTS } from './locationNotes.events';
 // import { MESSAGE_TEMPLATE_EVENTS } from './messageTemplates.events';
 
 const collections = {
@@ -13,6 +15,8 @@ const collections = {
   LOCATIONS: 'LOCATIONS',
   LOCATIONTYPES: 'LOCATIONTYPES',
   CONTACTS: 'CONTACTS',
+  LOCATIONNOTES: 'LOCATIONNOTES',
+  MEASUREMENTFILES: 'MEASUREMENTFILES',
 };
 
 const recordsEventHandlers = {
@@ -22,6 +26,8 @@ const recordsEventHandlers = {
   [collections.LOCATIONS]: LOCATION_EVENTS,
   [collections.LOCATIONTYPES]: LOCATIONTYPE_EVENTS,
   [collections.CONTACTS]: CONTACT_EVENTS,
+  [collections.MEASUREMENTFILES]: MEASUREMENTFILE_EVENTS,
+  [collections.LOCATIONNOTES]: LOCATIONNOTE_EVENTS,
   // [collections.MESSAGETEMPLATES]: MESSAGE_TEMPLATE_EVENTS,
 };
 

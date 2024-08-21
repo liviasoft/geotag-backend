@@ -62,8 +62,16 @@ export const defaultHandler = async (_: Request, res: Response) => {
   return res.status(sr.statusCode).send(sr);
 };
 
-export const placeholderHandler = async (_: Request, res: Response) => {
-  const sr = Rez.OK({ message: 'Not yet implemented', data: { meta: getPocketBase(true).settings.getAll({}) } });
+export const placeholderHandler = async (req: Request, res: Response) => {
+  const { query } = req;
+  console.log({ query });
+  const prisma = getPrismaClient();
+  const data = await prisma.contact.groupBy({ by: 'name', _count: { _all: true }, where: { id: { in: [] } } });
+  console.log(typeof query.number);
+  const sr = Rez.OK<'data'>({
+    message: 'Not yet implemented',
+    data: { data, meta: getPocketBase(true).settings.getAll({}) },
+  });
   return res.status(sr.statusCode).send(sr);
 };
 

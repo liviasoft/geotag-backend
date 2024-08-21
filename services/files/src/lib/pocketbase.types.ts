@@ -54,6 +54,7 @@ export interface Location extends RecordModel {
   longitude: number;
   description?: string;
   locationType: string;
+  deviceData?: JSONValue;
 }
 
 export interface LocationType extends RecordModel {
@@ -62,12 +63,32 @@ export interface LocationType extends RecordModel {
   icon: string;
 }
 
+export interface LocationNote extends RecordModel {
+  note: string;
+  type: string;
+  author: string;
+  details: JSONValue;
+  location: string;
+  isSystemNote: boolean;
+  measurementFile: string;
+}
+
+export interface MeasurementFile extends RecordModel {
+  file: string;
+  fileName: string;
+  fileDeviceUrl: string;
+  timeStamp: string | Date;
+  location: string;
+}
+
 export enum collections {
   users = 'users',
   appSettings = 'appSettings',
   userSettings = 'userSettings',
   locations = 'locations',
   locationTypes = 'locationTypes',
+  locationNotes = 'locationNotes',
+  measurementFiles = 'measurementFiles',
 }
 
 export const keys = Object.keys(collections) as unknown as keyof typeof collections;
@@ -79,6 +100,8 @@ export interface TypedPocketBase extends PocketBase {
   collection(idOrName: 'users'): RecordService<MessageTemplate>;
   collection(idOrName: 'locations'): RecordService<Location>;
   collection(idOrName: 'locationTypes'): RecordService<LocationType>;
+  collection(idOrName: 'locationNotes'): RecordService<LocationNote>;
+  collection(idOrName: 'measurementFiles'): RecordService<MeasurementFile>;
   collection(idOrName: string): RecordService; // default fallback for any other collection
   // collection(idOrName: 'tasks'): RecordService<Task>
 }

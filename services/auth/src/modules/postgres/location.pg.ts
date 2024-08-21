@@ -26,7 +26,11 @@ export class LocationPostgresService extends PostgresDBService<'location' | 'loc
     'city',
     'deviceData',
     'contacts',
-    'addedby',
+    'addedBy',
+    'image',
+    'imageUrl',
+    'connectionStatus',
+    'lastConnectionStatusCheck',
     'created',
     'updated',
   ];
@@ -68,6 +72,7 @@ export class LocationPostgresService extends PostgresDBService<'location' | 'loc
       ]);
       this.result = statusTMap.get('OK')!<'locations', Location>({
         data: { locations, meta: { filters, orderBy, total } },
+        message: 'Fetched Saved Locations',
       });
     } catch (error: any) {
       this.formatError(error);

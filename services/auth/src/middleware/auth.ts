@@ -35,9 +35,11 @@ export const proxyRequestMeta = async (req: Request, res: Response, next: NextFu
 
 export const validateAuthTokens = async (req: Request, res: Response, next: NextFunction) => {
   const cacheService = new CacheService();
+  console.log({ cookies: req.cookies });
   console.log({ requestData: req.body });
   const token = req.headers.authorization;
   if (!token) {
+    console.log('No authorization header found');
     res.locals.authUserId = null;
     return next();
     // const refreshToken = req.cookies?.refreshToken ? req.cookies.refreshToken : req.headers['x-refresh-token'];
@@ -52,13 +54,15 @@ export const validateAuthTokens = async (req: Request, res: Response, next: Next
     //   return next();
     // }
   }
-  const accessToken = token.split(' ')[1];
+  const accessToken = token.split(' ')[1] || req.cookies.accessToken;
   const refreshToken = req.cookies?.refreshToken ? req.cookies.refreshToken : req.headers['x-refresh-token'];
   if (!accessToken) {
+    console.log('No accessToken found');
     res.locals.authUserId = null;
     return next();
   }
   const { decoded: accessDecoded, valid, expired } = verifyToken(accessToken);
+  console.log({ accessDecoded, valid, expired });
   if (accessDecoded && valid) {
     const { userId, sessionId, pbToken, csrfToken } = accessDecoded as JwtPayload as {
       userId: string;
@@ -82,25 +86,35 @@ export const validateAuthTokens = async (req: Request, res: Response, next: Next
     }
     if (userId === sessionData.userId && sessionId === sessionData.sessionId && csrfToken === sessionData.csrfToken) {
       res.locals.authUserId = sessionData.userId;
+      res.locals.sessionId = sessionData.sessionId;
+      res.locals.csrfToken = sessionData.csrfToken;
       res.locals.authPBToken = pbToken;
       return next();
     }
     return next();
   }
   console.log({ refreshToken, expired });
-  if (expired && refreshToken) {
+  if (refreshToken) {
     const newAccessToken = await reIssueAccessToken(refreshToken);
     if (!newAccessToken || !newAccessToken?.token) {
       res.locals.authUserId = null;
       return next();
     }
-    const { userId, pbToken } = verifyToken(newAccessToken.token).decoded as { userId: string; pbToken: string };
+    const { userId, pbToken, sessionId, csrfToken } = verifyToken(newAccessToken.token).decoded as {
+      userId: string;
+      pbToken: string;
+      sessionId: string;
+      csrfToken: string;
+    };
 
     res.locals.newAccessToken = newAccessToken?.token;
     res.locals.authUserId = userId;
+    res.locals.sessionId = sessionId;
+    res.locals.csrfToken = csrfToken;
     res.locals.authPBToken = pbToken;
     return next();
   }
+  return next();
 };
 
 export const getUserIfLoggedIn = async (req: Request, res: Response, next: NextFunction) => {
@@ -264,7 +278,7 @@ export const reIssueAccessToken = async (refreshToken: string) => {
 
 export const requireLoggedInUser = async (_: Request, res: Response, next: NextFunction) => {
   const user = res.locals.user;
-
+  console.log({ user });
   if (!user) {
     const sr = statusTypes.get('Unauthorized')!({ message: `You need to be logged in` });
     return res.status(sr.statusCode).send(sr);

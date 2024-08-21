@@ -110,7 +110,7 @@ export const getLocationCountsHandler = async (req: Request, res: Response) => {
 
 export const getSavedLocationsHandler = async (req: Request, res: Response) => {
   const locpgs = new LocationPostgresService({});
-  const result = (await locpgs.getFullList({ include: { locationTypeData: true, contacts: true } }))
+  const result = (await locpgs.getFullList({ include: { locationTypeData: true, contacts: true, addedByData: true } }))
     .result! as TStatus<'locations'>;
   const sr = Rez[result.statusType]!({ ...result });
   return res.status(sr.statusCode).send(sr);

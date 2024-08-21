@@ -26,6 +26,10 @@ export class LocationPostgresService extends PostgresDBService<'location' | 'loc
     'city',
     'deviceData',
     'addedBy',
+    'image',
+    'imageUrl',
+    'connectionStatus',
+    'lastConnectionStatusCheck',
     'created',
     'updated',
   ];

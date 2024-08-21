@@ -5,7 +5,7 @@ import { config } from './config/config';
 import { getChannel, rabbitMQConnect, setChannel } from './lib/rabbitmq';
 import { serviceEvents } from './events';
 import { setIO } from './lib/socketio';
-import { serviceUP } from './lib/redis';
+import { serviceUP, startCronJob } from './lib/redis';
 import { setPocketBase } from './lib/pocketbase';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -21,6 +21,14 @@ io.on('connection', (socket) => {
   socket.on('disconnect', async (reason) => {
     console.log('User disconnected', { reason });
   });
+  socket.on('LOCATION_CONNECTED', async ({ locationId }) => {
+    console.log(`connected location: ${locationId}`);
+    await socket.join(locationId);
+  });
+  socket.on('LOCATION_DISCONNECTED', async ({ locationId }) => {
+    console.log(`disconnecting from location: ${locationId}`);
+    await socket.leave(locationId);
+  });
 });
 const PORT = self.port;
 
@@ -30,5 +38,7 @@ httpServer.listen(PORT, async () => {
   const channel = await rabbitMQConnect(config.rabbitMQ);
   if (channel) setChannel(channel);
   await serviceEvents(getChannel());
+  // console.log(typeof startCronJob);
+  startCronJob();
   console.log(`${self.name} API running on port ${PORT}`);
 });

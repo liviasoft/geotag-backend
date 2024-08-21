@@ -120,11 +120,18 @@ export interface UserSpecialPermission extends RecordModel {
 
 export interface Location extends RecordModel {
   name: string;
+  address?: string;
   latitude: number;
   longitude: number;
   description?: string;
   locationType: string;
+  deviceData?: JSONValue;
+  city: JSONValue;
   contacts?: string[];
+  addedBy: string;
+  connectionStatus?: string;
+  lastConnectionStatusCheck?: Date;
+  image?: string;
 }
 
 export interface LocationType extends RecordModel {

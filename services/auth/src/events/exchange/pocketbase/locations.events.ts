@@ -1,8 +1,13 @@
+import { getPocketBase } from '../../../lib/pocketbase';
 import { LocationPostgresService } from '../../../modules/postgres/location.pg';
 import { eventTypes } from './common';
 
 const LOCATION_UPDATED = async (data: any) => {
   const lpgs = new LocationPostgresService({});
+  if (data.image) {
+    const pb = getPocketBase(true);
+    data.imageUrl = pb.files.getUrl(data, data.image);
+  }
   const { result: check } = await lpgs.findById({ id: data.id });
   const exists = check?.statusType === 'OK';
   const { contacts } = data;
@@ -12,6 +17,7 @@ const LOCATION_UPDATED = async (data: any) => {
         ? { set: contacts.map((x: string) => ({ id: x })) }
         : { set: [] }
       : { connect: contacts.map((x: string) => ({ id: x })) };
+  // if (addedBy) data.addedBy = { connect: { id: addedBy } };
   const { result } = exists ? await lpgs.update(data) : await lpgs.create(data);
   return result;
 };

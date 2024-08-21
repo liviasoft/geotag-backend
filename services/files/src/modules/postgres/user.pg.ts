@@ -1,9 +1,9 @@
-import { Prisma, User, Note } from '@prisma/client';
+import { Prisma, User, LocationNote } from '@prisma/client';
 import { PostgresDBService, TPagination } from './common.pg';
 import { CustomErrorByType, statusTMap } from '@neoncoder/typed-service-response';
 
 export type TUserWithIncludes = User & {
-  notes?: Note[];
+  notes?: LocationNote[];
 };
 
 export type TUserFilters = {

@@ -23,10 +23,10 @@ model AppSetting {
   list        Json?
   object      Json?
   objectList  Json[]
-  created     DateTime  @default(now())
+  created     DateTime?  @default(now())
   updated     DateTime? @updatedAt
 
-  type        DataType
+  type DataType
 }
 
 enum DataType {
@@ -48,12 +48,12 @@ model User {
   phoneData       Json?
   avatar          String?
   avatarUrl       String?
-  created         DateTime  @default(now())
+  created         DateTime?  @default(now())
   updated         DateTime? @updatedAt
 
-  addedLocations  Location[]
-  addedContacts   Contact[]
-  notes           Note[]
+  addedLocations Location[]
+  addedContacts  Contact[]
+  notes          LocationNote[]
 }
 
 model UserSetting {
@@ -66,46 +66,155 @@ model UserSetting {
   list        Json?
   object      Json?
   objectList  Json[]
-  created     DateTime  @default(now())
+  created     DateTime?  @default(now())
   updated     DateTime? @updatedAt
 
-  type        DataType
+  type DataType
 }
 
-model Note {
-  id         String @id @default(cuid())
-  authorId   String
-  authorData User   @relation(fields: [authorId], references: [id])
-  note       String
+model LocationNote {
+  id              String   @id @default(cuid())
+  note            String
+  isSystemNote    Boolean  @default(false)
+  author          String?
+  location        String?
+  measurementFile String?
+  type            String?
+  details         Json?
+  created         DateTime? @default(now())
+  updated         DateTime? @updatedAt
+
+  measurementFileData MeasurementFile? @relation(fields: [measurementFile], references: [id], onDelete: SetNull)
+  locationData        Location?        @relation(fields: [location], references: [id], onDelete: Cascade)
+  authorData          User?            @relation(fields: [author], references: [id], onDelete: SetNull)
 }
 
 model Location {
-  id             String   @id @default(cuid())
-  name           String
-  address        String?
-  latitude       Decimal
-  longitude      Decimal
-  description    String?
-  locationType   String?
-  city           Json?
-  deviceData     Json?
-  addedBy        String?
-  created        DateTime @default(now())
-  updated        DateTime @updatedAt
+  id                        String    @id @default(cuid())
+  name                      String
+  address                   String?
+  latitude                  Decimal
+  longitude                 Decimal
+  description               String?
+  locationType              String?
+  city                      Json?
+  deviceData                Json?
+  addedBy                   String?
+  image                     String?
+  imageUrl                  String?
+  connectionStatus          String?
+  lastConnectionStatusCheck DateTime?
+  created                   DateTime?  @default(now())
+  updated                   DateTime?  @updatedAt
 
-  contacts         Contact[]
-  addedByData      User? @relation(fields: [addedBy], references: [id])
-  locationTypeData LocationType? @relation(fields: [locationType], references: [id], onDelete: SetNull)
+  measurementMetadata MeasurementMetadata[]
+  measurementFiles    MeasurementFile[]
+  notes               LocationNote[]
+  contacts            Contact[]
+  addedByData         User?                 @relation(fields: [addedBy], references: [id], onDelete: SetNull)
+  locationTypeData    LocationType?         @relation(fields: [locationType], references: [id], onDelete: SetNull)
+}
+
+model MeasurementFile {
+  id            String   @id @default(cuid())
+  file          String
+  fileUrl       String
+  location      String
+  fileName      String
+  timeStamp     DateTime
+  metadataId    String?
+  fileDeviceUrl String
+  created       DateTime? @default(now())
+  updated       DateTime? @updatedAt
+
+  metadata     MeasurementMetadata? @relation(fields: [metadataId], references: [id], onDelete: Cascade)
+  notes        LocationNote[]
+  traces       Trace[]
+  points       Point[]
+  locationData Location             @relation(fields: [location], references: [id], onDelete: Cascade)
+}
+
+model MeasurementMetadata {
+  id                       String    @id @default(cuid())
+  Limit                    String?
+  latitude                 Decimal?
+  longitude                Decimal?
+  altitude                 Decimal?
+  deviceId                 String?
+  timeStart                DateTime?
+  gpsTimeStamp             DateTime?
+  axisDwellTime            Int?
+  frequencyRange           String?
+  numberOfSatellites       Int?
+  numberOfMeasurements     Int?
+  measurementTimeInSeconds Int?
+  created                  DateTime?  @default(now())
+  updated                  DateTime?  @updatedAt
+
+  device           Location?         @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  measurementFiles MeasurementFile[]
+  measurements     Measurement[]
+  traces           Trace[]
+}
+
+model Measurement {
+  id                    String   @id @default(cuid())
+  avg_DBM_M2            Decimal
+  min_DBM_M2            Decimal
+  max_DBM_M2            Decimal
+  test_status           String
+  time_in_seconds       Int
+  total_avg_DBM_M2      Decimal
+  total_min_DBM_M2      Decimal
+  total_max_DBM_M2      Decimal
+  total_time_in_seconds Int
+  measurementMetadataId String?
+  created               DateTime? @default(now())
+  updated               DateTime? @updatedAt
+
+  measurementMetadata MeasurementMetadata? @relation(fields: [measurementMetadataId], references: [id])
+  traces              Trace[]
+}
+
+model Trace {
+  id                    String   @id @default(cuid())
+  name                  String
+  measurementId         String?
+  measurementMetadataId String?
+  measurementFileId     String?
+  created               DateTime? @default(now())
+  updated               DateTime? @updatedAt
+
+  measurementMetadata MeasurementMetadata? @relation(fields: [measurementMetadataId], references: [id], onDelete: SetNull)
+  measurementFile     MeasurementFile?     @relation(fields: [measurementFileId], references: [id], onDelete: Cascade)
+  measurement         Measurement?         @relation(fields: [measurementId], references: [id], onDelete: Cascade)
+  points              Point[]
+}
+
+model Point {
+  pointNum          String
+  amplitude_DBMV    Decimal? @db.Decimal(10, 2)
+  frequency_MHz     Decimal? @db.Decimal(10, 2)
+  amplitude_VM      Decimal?
+  referenceEMFLimit Decimal?
+  exposureRatio     Decimal?
+  traceId           String
+  measurementFileId String
+
+  trace           Trace           @relation(fields: [traceId], references: [id], onDelete: Cascade)
+  measurementFile MeasurementFile @relation(fields: [measurementFileId], references: [id], onDelete: Cascade)
+
+  @@id([measurementFileId, traceId, pointNum])
 }
 
 model LocationType {
   id          String   @id @default(cuid())
-  name        String
-  description String?
   icon        String?
+  name        String
   iconUrl     String?
-  created     DateTime @default(now())
-  updated     DateTime @updatedAt
+  description String?
+  created     DateTime? @default(now())
+  updated     DateTime? @updatedAt
 
   locations Location[]
 }
@@ -117,9 +226,9 @@ model Contact {
   email   String?
   phone   String?
   addedBy String?
-  created DateTime @default(now())
-  updated DateTime @updatedAt
+  created DateTime? @default(now())
+  updated DateTime? @updatedAt
 
-  addedByData     User? @relation(fields: [addedBy], references: [id])
-  locations Location[]
+  locations   Location[]
+  addedByData User?      @relation(fields: [addedBy], references: [id])
 }

@@ -14,6 +14,7 @@ import {
 } from '@neoncoder/pocketbase';
 import { sanitizeData } from '@neoncoder/validator-utils';
 import { TPagination } from '../postgres/common.pg';
+import { config } from '../../config/config';
 
 export default abstract class PBService<Keys extends string, T> implements IDataAccess<Keys, T> {
   pb: ReturnType<typeof getPocketBase>;
@@ -122,5 +123,16 @@ export default abstract class PBService<Keys extends string, T> implements IData
   sanitize<T extends object>(fields: string[], data: Partial<T>) {
     const sanitizedData = sanitizeData<T>(fields, data);
     return sanitizedData;
+  }
+
+  async adminAuth() {
+    await this.pb.admins.authWithPassword(config.pocketbase.adminEmail, config.pocketbase.adminPassword);
+    return this;
+  }
+
+  async userAuth(token: string, userId: string) {
+    const user = await this.pb.collection('users').getFirstListItem(`'id'="${userId}"`);
+    this.pb.authStore.save(token, user);
+    return this;
   }
 }

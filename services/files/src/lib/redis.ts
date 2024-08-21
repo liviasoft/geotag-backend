@@ -1,7 +1,13 @@
 import { createClient } from 'redis';
+import cron from 'node-cron';
 import { config } from '../config/config';
 import CacheService from '../modules/cache';
 import { events } from '../events/eventTypes';
+// import { LocationPostgresService } from '../modules/postgres/location.pg';
+// import { TStatus } from '@neoncoder/typed-service-response';
+// import { addToDeviceQueue, deviceConnectionQueue } from '../services/bulljsQueues/device.queues';
+import { deviceConnectionQueue } from '../services/bulljsQueues/device.queues';
+// import { Location } from '@prisma/client';
 
 let redisClient: RedisConnection;
 
@@ -48,4 +54,22 @@ export const getServiceEvents = async (service: string) => {
   const serviceEvents: { [key: string]: string } = (await redis.hGet(service, 'events', { scopeToService: false }))
     .result!;
   return serviceEvents;
+};
+
+export const startCronJob = () => {
+  cron.schedule('*/10 * * * *', async () => {
+    console.log('running Task every ten minutes');
+    // const result = (
+    //   await new LocationPostgresService({}).getFullList({
+    //     filters: { locationTypeData: { name: { contains: 'Device', mode: 'insensitive' } } },
+    //   })
+    // ).result! as TStatus<'locations', Location>;
+    // if (result && result?.data && result?.data?.locations) {
+    //   const locations = result.data.locations as Location[];
+    //   locations.forEach((location) => {
+    //     addToDeviceQueue(location);
+    //   });
+    // }
+    deviceConnectionQueue.add('check-connected-devices', {});
+  });
 };
