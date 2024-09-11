@@ -21,6 +21,7 @@ import {
 import { SignalMeta } from '../../services/bulljsQueues/device.queues';
 import { MeasurementFilePocketbaseService } from '../../modules/pocketbase/measurementFile.pb';
 import { getPrismaClient } from '../../lib/prisma';
+import { MILLISECONDS, TIME_PERIOD, WORD_TO_TIME_PERIOD, WordTimePeriodKey } from '@neoncoder/validator-utils';
 
 export const getStoredMeasurementFilesHandler = async (req: Request, res: Response) => {
   const mfpgs = new MeasurementFilePostgresService({});
@@ -46,8 +47,9 @@ export const getDeviceMeasurementFilesHandler = async (req: Request, res: Respon
     const sr = statusTypes.get('ExpectationFailed')!({ message: `${device.name}: Check device connection status` });
     return res.status(sr.statusCode).send(sr);
   }
+  const { useRemoteConnection, remoteHTTPUrl } = device;
   try {
-    const deviceUrl = `http://${ipAddress}/internal/EMF`;
+    const deviceUrl = useRemoteConnection ? `${remoteHTTPUrl}/internal/EMF` : `http://${ipAddress}/internal/EMF`;
     const { data: html } = await axios.get(deviceUrl);
     const hrefs: string[] = extractAttrFromHTML({ html });
     const fileFolders = hrefs.filter((_, i) => i > 0).map((y) => `${deviceUrl}/${y}`);
@@ -247,5 +249,26 @@ export const getFileSignalDataHandler = async (req: Request, res: Response) => {
     return res.status(sr.statusCode).send(sr);
   }
   const sr = statusTypes.get('OK')!<'traces'>({ message: 'File Measurement Data Loaded', data: { traces: data } });
+  return res.status(sr.statusCode).send(sr);
+};
+
+export const searchDeviceMeasurementFilesHandler = async (req: Request, res: Response) => {
+  const mfpgs = new MeasurementFilePostgresService({});
+  const useTimePeriod = req.query.useTimePeriod === 'true';
+  console.log(req.query);
+  const timePeriod: WordTimePeriodKey =
+    String(req.query.timePeriod) in WORD_TO_TIME_PERIOD ? (String(req.query.timePeriod) as WordTimePeriodKey) : 'days';
+  const value = Number(req.query.value ?? 1) > 0 ? Number(req.query.value ?? 1) : 1;
+  const timeInSeconds = useTimePeriod ? TIME_PERIOD[WORD_TO_TIME_PERIOD[timePeriod]] * value * MILLISECONDS : 0;
+  const from = req.query.from ? new Date(req.query.from as string) : new Date(Date.now() - timeInSeconds);
+  const to = req.query.to ? new Date(req.query.to as string) : new Date();
+  const result = (
+    await mfpgs.getFullList({
+      filters: { AND: [{ location: req.params.deviceId }, { timeStamp: { gte: from, lte: to } }] },
+      include: { _count: { select: { notes: true, points: true, traces: true } }, metadata: true },
+      orderBy: { timeStamp: 'desc' },
+    })
+  ).result!;
+  const sr = statusTypes.get(result.statusType)!({ ...result });
   return res.status(sr.statusCode).send(sr);
 };

@@ -4,7 +4,15 @@ import { locationRoutes } from './location.routes';
 import { ExpressAdapter } from '@bull-board/express';
 import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
-import { deviceInspectionQueue, fileProcessingQueue, fileStorageQueue } from '../services/bulljsQueues/device.queues';
+import {
+  deviceInspectionQueue,
+  fileProcessingQueue,
+  fileStorageQueue,
+  fileCheckQueue,
+  fileUpdateQueue,
+  signalStorageQueue,
+  deviceConnectionQueue,
+} from '../services/bulljsQueues/device.queues';
 
 const router = Router();
 
@@ -14,9 +22,13 @@ serverAdapter.setBasePath(`/api/v1/files${bullAdminPath}`);
 
 createBullBoard({
   queues: [
+    new BullAdapter(deviceConnectionQueue),
     new BullAdapter(deviceInspectionQueue),
+    new BullAdapter(fileCheckQueue),
     new BullAdapter(fileStorageQueue),
     new BullAdapter(fileProcessingQueue),
+    new BullAdapter(fileUpdateQueue),
+    new BullAdapter(signalStorageQueue),
   ],
   serverAdapter,
 });

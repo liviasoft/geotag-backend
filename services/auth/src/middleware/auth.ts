@@ -70,8 +70,10 @@ export const validateAuthTokens = async (req: Request, res: Response, next: Next
       pbToken: string;
       csrfToken: string;
     };
-    const sessionData = (await cacheService.formatKey({ scopeToService: false }, 'SESSION', userId, sessionId).get())
-      .result;
+    const sessionData =
+      (await cacheService.formatKey({ scopeToService: false }, 'SESSION', userId, sessionId).get()).result ??
+      (await recacheValidSession(sessionId, pbToken));
+
     console.log({ sessionData });
     if (!sessionData) {
       res.locals.authUserId = null;
@@ -274,6 +276,22 @@ export const reIssueAccessToken = async (refreshToken: string) => {
   const newAccessToken = signJWT(newTokenData, undefined, { expiresIn: config.self.accessTokenTTL });
 
   return newAccessToken;
+};
+
+export const recacheValidSession = async (sessionId: string, pbToken: string) => {
+  const sessionPgs = new SessionPostgresService({});
+  const session = (await sessionPgs.findById({ id: sessionId })).result?.data?.session as Session;
+  if (session) {
+    if (session.expiresAt && new Date(session.expiresAt) > new Date()) {
+      const tokenData = { userId: session.user, sessionId: session.id, pbToken, csrfToken: session.csrfToken };
+      await new CacheService()
+        .formatKey({ scopeToService: false }, 'SESSION', session.user!, session.id)
+        .set(tokenData, undefined, { EX: parseInt(String(config.self.accessTokenTTLMS), 10) / 1000 });
+      return tokenData;
+    }
+    return null;
+  }
+  return null;
 };
 
 export const requireLoggedInUser = async (_: Request, res: Response, next: NextFunction) => {

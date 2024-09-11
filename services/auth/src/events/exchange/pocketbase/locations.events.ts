@@ -7,6 +7,9 @@ const LOCATION_UPDATED = async (data: any) => {
   if (data.image) {
     const pb = getPocketBase(true);
     data.imageUrl = pb.files.getUrl(data, data.image);
+  } else {
+    data.image = null;
+    data.imageUrl = null;
   }
   const { result: check } = await lpgs.findById({ id: data.id });
   const exists = check?.statusType === 'OK';

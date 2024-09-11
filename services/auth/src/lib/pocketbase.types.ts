@@ -126,18 +126,32 @@ export interface Location extends RecordModel {
   description?: string;
   locationType: string;
   deviceData?: JSONValue;
-  city: JSONValue;
+  city?: JSONValue;
   contacts?: string[];
-  addedBy: string;
+  addedBy?: string;
   connectionStatus?: string;
   lastConnectionStatusCheck?: Date;
+  useRemoteConnection?: boolean;
+  remoteHTTPUrl?: string;
+  remoteTCPUrl?: string;
   image?: string;
+  isLocked?: boolean;
 }
 
 export interface LocationType extends RecordModel {
   name: string;
   description?: string;
   icon: string;
+}
+
+export interface LocationNote extends RecordModel {
+  note: string;
+  type: string;
+  author?: string;
+  details?: JSONValue;
+  location: string;
+  isSystemNote: boolean;
+  measurementFile?: string;
 }
 
 export interface Contact extends RecordModel {
@@ -163,6 +177,7 @@ export enum collections {
   userSettings = 'userSettings',
   locations = 'locations',
   locationTypes = 'locationTypes',
+  locationNotes = 'locationNotes',
   contacts = 'contacts',
 }
 
@@ -183,6 +198,7 @@ export interface TypedPocketBase extends PocketBase {
   collection(idOrName: 'userSettings'): RecordService<UserSetting>;
   collection(idOrName: 'locations'): RecordService<Location>;
   collection(idOrName: 'locationTypes'): RecordService<LocationType>;
+  collection(idOrName: 'locationNotes'): RecordService<LocationNote>;
   collection(idOrName: 'contacts'): RecordService<Contact>;
   collection(idOrName: string): RecordService; // default fallback for any other collection
   // collection(idOrName: 'tasks'): RecordService<Task>

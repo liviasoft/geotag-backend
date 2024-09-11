@@ -31,6 +31,10 @@ export class LocationPostgresService extends PostgresDBService<'location' | 'loc
     'imageUrl',
     'connectionStatus',
     'lastConnectionStatusCheck',
+    'useRemoteConnection',
+    'remoteHTTPUrl',
+    'remoteTCPUrl',
+    'isLocked',
     'created',
     'updated',
   ];
@@ -128,7 +132,7 @@ export class LocationPostgresService extends PostgresDBService<'location' | 'loc
   }
 
   async update(updateData: Partial<Location>, include?: Prisma.LocationInclude): Promise<this> {
-    const data = this.removeKeys(this.sanitize(this.fields, updateData), ['id']);
+    const data = this.removeKeys(this.sanitize(this.fields, updateData, true), ['id']);
     try {
       this.assertLocationExists();
       const id = this.location.id;
@@ -186,6 +190,11 @@ export class LocationPostgresService extends PostgresDBService<'location' | 'loc
   private getIncludes(include?: Prisma.LocationInclude) {
     const countInclude: Prisma.LocationInclude = {
       locationTypeData: true,
+      _count: {
+        select: {
+          contacts: true,
+        },
+      },
     };
     return { ...include, ...countInclude };
   }

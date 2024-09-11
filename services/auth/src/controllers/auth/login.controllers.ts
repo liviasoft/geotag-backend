@@ -49,7 +49,9 @@ export const emailLoginHandler = async (req: Request, res: Response) => {
     });
     return res.status(sr.statusCode).send(sr);
   }
-  await adminpb.admins.authWithPassword(config.pocketbase.adminEmail, config.pocketbase.adminPassword);
+  await adminpb.admins.authWithPassword(config.pocketbase.adminEmail, config.pocketbase.adminPassword, {
+    requestKey: null,
+  });
   const refreshTokenTTLInSeconds = Math.floor((await adminpb.settings.getAll()).recordAuthToken.duration / 1000) * 1000;
   console.log({ pbToken, pbUser });
   const db = getPrismaClient();

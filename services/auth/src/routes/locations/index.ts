@@ -9,6 +9,7 @@ import {
   locationExists,
   testDeviceConnectionHandler,
   sendDeviceCommandHandler,
+  getLocationDetailsHandler,
 } from '../../controllers/location/crud.controllers';
 import { zodValidate } from '../../middleware/common.middleware';
 import { createSiteSchema, deviceCommandSchema } from '../../utils/schema/location.schema';
@@ -26,6 +27,7 @@ router.get('/sites/:locationId/test-connection', testDeviceConnectionHandler);
 router.get('/fix', fixCityData);
 router.use('/countries', countryRoutes);
 router.get('/nearest-cities', getNearestCitiesHandler);
+router.get('/sites/:locationId', getLocationDetailsHandler);
 router.patch('/sites/:locationId', requireLoggedInUser, updateLocationHandler);
 router.post(
   '/sites/:locationId/command',

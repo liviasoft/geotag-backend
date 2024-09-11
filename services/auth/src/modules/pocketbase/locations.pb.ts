@@ -1,4 +1,4 @@
-import { RecordOptions } from '@neoncoder/pocketbase';
+import { CommonOptions, RecordOptions } from '@neoncoder/pocketbase';
 import { CustomErrorByType, statusTMap } from '@neoncoder/typed-service-response';
 import { getPocketBase } from '../../lib/pocketbase';
 import { Location } from '../../lib/pocketbase.types';
@@ -21,6 +21,10 @@ export class LocationPocketbaseService extends PBService<'location' | 'locations
     'image',
     'connectionStatus',
     'lastConnectionStatusCheck',
+    'useRemoteConnection',
+    'remoteHTTPUrl',
+    'remoteTCPUrl',
+    'isLocked',
     'created',
     'updated',
   ];
@@ -64,12 +68,34 @@ export class LocationPocketbaseService extends PBService<'location' | 'locations
       this.location = await this.update<Location>({ id: this.location.id, data, options });
       this.result = statusTMap.get('OK')!<'location', Location>({
         data: { location: this.location, meta: { ...this.requestMeta(options) } },
+        message: `${this.location.name}: Location Updated`,
       });
     } catch (error: any) {
       console.log({ error });
       this.formatError(error);
     }
     return this;
+  }
+
+  async deleteLocation({ options }: { options?: CommonOptions }) {
+    try {
+      this.assertLocationExists();
+      await this.delete({ id: this.location.id, options });
+      this.set({});
+      this.result = statusTMap.get('OK')!<'location'>({
+        data: { meta: { options }, location: this.location },
+        message: 'Location deleted',
+      });
+    } catch (error: any) {
+      console.log({ error });
+      this.formatError(error);
+    }
+    return this;
+  }
+
+  private set({ location, token }: { location?: Location | null; token?: string }) {
+    this.location = location ?? null;
+    this.token = token ?? null;
   }
 
   private assertLocationExists(): asserts this is this & { location: Location } {

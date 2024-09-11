@@ -6,14 +6,14 @@ import { signupRoutes } from './signup.routes';
 import { sf } from '../../middleware/common.middleware';
 import { defaultHandler } from '../../controllers/default';
 import { logoutHandler } from '../../controllers/auth/me.controllers';
-import { requireLoggedInUser } from '../../middleware/auth';
+// import { requireLoggedInUser } from '../../middleware/auth';
 
 const router = Router();
 
 router.use('/me', currentUserRoutes);
 router.use('/signup', sf('auth.signup'), signupRoutes);
 router.use('/login', sf('auth.login'), loginRoutes);
-router.get('/logout', requireLoggedInUser, logoutHandler);
+router.get('/logout', logoutHandler);
 router.use('/verify', verifyRoutes);
 router.get('/settings', defaultHandler);
 

@@ -14,14 +14,17 @@ import {
 } from '@neoncoder/pocketbase';
 import { sanitizeData } from '@neoncoder/validator-utils';
 import { TPagination } from '../postgres/common.pg';
+import { config } from '../../config/config';
 
 export default abstract class PBService<Keys extends string, T> implements IDataAccess<Keys, T> {
   pb: ReturnType<typeof getPocketBase>;
+  token: string | null;
   result: TStatus<Keys, T> | undefined;
   collection: typeof keys;
 
-  constructor(collection: keyof typeof collections, pocketbaseInstance?: TypedPocketBase) {
+  constructor(collection: keyof typeof collections, pocketbaseInstance?: TypedPocketBase, token?: string) {
     this.pb = pocketbaseInstance ?? getPocketBase();
+    this.token = token ?? null;
     this.collection = collection;
   }
 
@@ -42,15 +45,15 @@ export default abstract class PBService<Keys extends string, T> implements IData
   }
 
   create<T>({ data, options }: { data: { [key: string]: any } | FormData; options?: RecordOptions }) {
-    return this.pb.collection(this.collection).create<T>(data, options);
+    return this.pb.collection(this.collection).create<T>(data, { ...options, requestKey: null });
   }
 
   update<T>({ id, data, options }: { id: string; data: { [key: string]: any } | FormData; options?: RecordOptions }) {
-    return this.pb.collection(this.collection).update<T>(id, data, options);
+    return this.pb.collection(this.collection).update<T>(id, data, { ...options, requestKey: null });
   }
 
   delete({ id, options }: { id: string; options?: CommonOptions }) {
-    return this.pb.collection(this.collection).delete(id, options);
+    return this.pb.collection(this.collection).delete(id, { ...options, requestKey: null });
   }
 
   getFileUrl({
@@ -126,5 +129,18 @@ export default abstract class PBService<Keys extends string, T> implements IData
   sanitize<T extends object>(fields: string[], data: Partial<T>) {
     const sanitizedData = sanitizeData<T>(fields, data);
     return sanitizedData;
+  }
+
+  async adminAuth() {
+    await this.pb.admins.authWithPassword(config.pocketbase.adminEmail, config.pocketbase.adminPassword, {
+      requestKey: null,
+    });
+    return this;
+  }
+
+  async userAuth(token: string, userId: string) {
+    const user = await this.pb.collection('users').getFirstListItem(`'id'="${userId}"`);
+    this.pb.authStore.save(token, user);
+    return this;
   }
 }

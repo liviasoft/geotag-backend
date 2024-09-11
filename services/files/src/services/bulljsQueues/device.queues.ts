@@ -170,7 +170,10 @@ const processMeasurementFile = async (job: Job) => {
   const pb = getRawPocketBase();
   job.log('Fetching Measurement File Data');
   const fileUrl = pb.getFileUrl(measurementFile, measurementFile.file);
-  const { data: blob } = await axios.get(fileUrl, { responseType: 'blob' });
+  const { data: blob } = await axios.get(fileUrl, {
+    responseType: 'blob',
+    headers: { 'ngrok-skip-browser-warning': true },
+  });
   const lines = blob.split('\n');
   const firstLine = lines[0];
   const signalmeta: SignalMeta = {};

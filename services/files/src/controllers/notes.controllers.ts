@@ -8,16 +8,30 @@ import { LocationNote, Prisma } from '@prisma/client';
 export const getLocationNotesHandler = async (req: Request, res: Response) => {
   console.log('Reached here');
   const limit = parseInt(req.query.limit as string, 10) ? parseInt(req.query.limit as string, 10) : 25;
+  const page = parseInt(req.query.page as string, 10) ? parseInt(req.query.page as string, 10) : 1;
   const from = req.query.from ? new Date(req.query.from as string) : new Date();
   const locnotepgs = new LocationNotePostgresService({});
-  const result = (
-    await locnotepgs.getList({
-      limit,
-      filters: { AND: [{ created: { lte: from } }, { location: req.params.locationId }] },
-      orderBy: { created: 'desc' },
-      include: { authorData: true, locationData: true, measurementFileData: true },
-    })
-  ).result! as TStatus<'locationNotes'>;
+  let result: TStatus<'locationNotes'>;
+  if (req.query.page) {
+    result = (
+      await locnotepgs.getList({
+        page,
+        limit,
+        filters: { AND: [{ location: req.params.locationId }] },
+        orderBy: { created: 'desc' },
+        include: { authorData: true, locationData: true, measurementFileData: true },
+      })
+    ).result! as TStatus<'locationNotes'>;
+  } else {
+    result = (
+      await locnotepgs.getList({
+        limit,
+        filters: { AND: [{ created: { lte: from } }, { location: req.params.locationId }] },
+        orderBy: { created: 'desc' },
+        include: { authorData: true, locationData: true, measurementFileData: true },
+      })
+    ).result! as TStatus<'locationNotes'>;
+  }
   const sr = statusTypes.get(result?.statusType)!({ ...result });
   return res.status(sr.statusCode).send(sr);
 };

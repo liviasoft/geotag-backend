@@ -18,7 +18,7 @@
     "@bull-board/express": "^5.21.3",
     "@neoncoder/pocketbase": "^0.0.1",
     "@neoncoder/typed-service-response": "^0.0.7",
-    "@neoncoder/validator-utils": "^0.0.13",
+    "@neoncoder/validator-utils": "^0.0.14",
     "@prisma/client": "^5.16.1",
     "@types/amqplib": "^0.10.5",
     "amqplib": "^0.10.4",

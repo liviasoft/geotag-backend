@@ -58,8 +58,8 @@ abstract class PostgresDBService<K extends string, T = any> implements IDataAcce
     this.result = statusCMap.get(500)!({ error, message });
   }
 
-  sanitize<T extends object>(fields: string[], data: Partial<T>) {
-    const sanitizedData = sanitizeData<T>(fields, data);
+  sanitize<T extends object>(fields: string[], data: Partial<T>, allowNull = false) {
+    const sanitizedData = sanitizeData<T>(fields, data, allowNull);
     return sanitizedData;
   }
 

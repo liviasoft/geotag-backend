@@ -87,7 +87,15 @@ export const sendScpiCommand = (
   const { port, host, command } = scpiCommand;
   client.connect(port, host, () => {
     console.log('Connected to device');
-    client.write(command + '\n');
+    client.write(command + '\n', async (err) => {
+      if (err) {
+        await callback(err);
+        client.destroy();
+      } else if (command.charAt(command.length - 1) !== '?') {
+        await callback(null, `Command Sent: ${command}`);
+        client.destroy();
+      }
+    });
   });
 
   client.on('data', async (data) => {
@@ -102,6 +110,7 @@ export const sendScpiCommand = (
 
   client.on('error', async (err) => {
     console.log('Error: ' + err.message);
+    client.destroy();
     return await callback(err);
   });
 };
@@ -116,7 +125,15 @@ export function sendTCPMessage(
 
     client.connect(port, host, () => {
       console.log(`Connected to ${host}:${port}`);
-      client.write(message + '\n');
+      client.write(message + '\n', (err) => {
+        if (err) {
+          reject({ response: null, error: err });
+          client.destroy();
+        } else if (message.charAt(message.length - 1) !== '?') {
+          client.destroy();
+          resolve({ response: `Command Sent: ${message}`, error: null });
+        }
+      });
     });
 
     client.on('data', (data) => {
@@ -128,6 +145,7 @@ export function sendTCPMessage(
     client.on('error', (err) => {
       console.error(`Connection error: ${err.message}`);
       reject({ response: null, error: err });
+      client.destroy();
     });
 
     client.on('close', () => {

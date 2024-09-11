@@ -18,6 +18,7 @@ import { Request, Response } from 'express';
 import { getPrismaClient } from '../../lib/prisma';
 import { JsonObject } from '@prisma/client/runtime/library';
 import { LocationPostgresService } from '../../modules/postgres/location.pg';
+import { toTitleCase } from '../../utils/helpers/formatters';
 
 export const getLocationCountsHandler = async (req: Request, res: Response) => {
   const { q } = req.query;
@@ -90,18 +91,90 @@ export const getLocationCountsHandler = async (req: Request, res: Response) => {
             ],
           },
         },
+        {
+          city: {
+            path: ['name'],
+            string_contains: search,
+          },
+        },
+        {
+          city: {
+            path: ['name'],
+            string_contains: search.toLowerCase(),
+          },
+        },
+        {
+          city: {
+            path: ['name'],
+            string_contains: toTitleCase(search),
+          },
+        },
+        {
+          city: {
+            path: ['state_name'],
+            string_contains: search.toLowerCase(),
+          },
+        },
+        {
+          city: {
+            path: ['state_name'],
+            string_contains: search,
+          },
+        },
+        {
+          city: {
+            path: ['state_name'],
+            string_contains: toTitleCase(search),
+          },
+        },
+        {
+          city: {
+            path: ['country_name'],
+            string_contains: toTitleCase(search),
+          },
+        },
+        {
+          city: {
+            path: ['country_name'],
+            string_contains: search,
+          },
+        },
+        {
+          city: {
+            path: ['country_name'],
+            string_contains: search.toLowerCase(),
+          },
+        },
       ],
     },
     include: { locationTypeData: true },
   });
-
+  console.log(toTitleCase(search));
   const locations = locationData.map((l) => {
     const { city } = l;
     if (city) {
       const { name: cityName, state_name: state, country_name: country } = city as JsonObject;
-      return { name: l.name, type: 'Location', value: l.id, city: cityName, state, country };
+      return {
+        name: l.name,
+        type: 'Location',
+        value: l.id,
+        city: cityName,
+        state,
+        country,
+        latitude: l.latitude,
+        longitude: l.longitude,
+      };
     } else {
-      return { name: l.name, type: 'Location', value: l.id, city: 'Unknown', state: 'Unknown', country: 'Unknown' };
+      return {
+        name: l.name,
+        type: 'Location',
+        value: l.id,
+        city: 'Unknown',
+        state: 'Unknown',
+        country: 'Unknown',
+        latitude: l.latitude,
+        longitude: l.longitude,
+      };
     }
   });
   const sr = statusTypes.get('OK')!({ data: { results: [...cities, ...states, ...countries, ...locations] } });

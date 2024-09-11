@@ -55,6 +55,15 @@ export interface Location extends RecordModel {
   description?: string;
   locationType: string;
   deviceData?: JSONValue;
+  connectionStatus?: string;
+  lastConnectionStatusCheck?: Date;
+  useRemoteConnection?: boolean;
+  remoteHTTPUrl?: string;
+  remoteTCPUrl?: string;
+  isLocked?: boolean;
+  city?: JSONValue;
+  contacts?: string[];
+  addedBy?: string;
 }
 
 export interface LocationType extends RecordModel {
@@ -66,11 +75,11 @@ export interface LocationType extends RecordModel {
 export interface LocationNote extends RecordModel {
   note: string;
   type: string;
-  author: string;
-  details: JSONValue;
+  author?: string;
+  details?: JSONValue;
   location: string;
   isSystemNote: boolean;
-  measurementFile: string;
+  measurementFile?: string;
 }
 
 export interface MeasurementFile extends RecordModel {

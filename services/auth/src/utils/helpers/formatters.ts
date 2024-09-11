@@ -61,3 +61,14 @@ export const timeFormatHHMMSS = (
     .join('');
   return timeString;
 };
+
+const lowerCaseList = ['of', 'and'];
+
+export function toTitleCase(str: string) {
+  return str.replace(/\p{L}+/gu, function (txt) {
+    if (str.indexOf(txt) !== 0 && lowerCaseList.includes(txt.toLowerCase())) {
+      return txt.toLowerCase();
+    }
+    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+  });
+}

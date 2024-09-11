@@ -21,6 +21,10 @@ export class LocationPocketbaseService extends PBService<'location' | 'locations
     'image',
     'connectionStatus',
     'lastConnectionStatusCheck',
+    'useRemoteConnection',
+    'remoteHTTPUrl',
+    'remoteTCPUrl',
+    'isLocked',
     'created',
     'updated',
   ];

@@ -9,15 +9,12 @@ import { getObjectKeys } from '@neoncoder/validator-utils';
 export class ContactPocketbaseService extends PBService<'contact' | 'contacts', Contact> {
   contact: Contact | null;
 
-  token: string | null;
-
   fields = ['id', 'name', 'email', 'phone', 'address', 'addedBy', 'created', 'updated'];
 
   constructor({ isAdmin = false, contact, token }: { isAdmin?: boolean; contact?: Contact; token?: string }) {
     const pocketbaseInstance = isAdmin ? getPocketBase(isAdmin) : undefined;
-    super('contacts', pocketbaseInstance);
+    super('contacts', pocketbaseInstance, token);
     this.contact = contact ?? null;
-    this.token = token ?? null;
   }
 
   async getContacts({ page = 1, limit = 50, options }: TPagination & { options?: RecordListOptions }) {

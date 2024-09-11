@@ -15,6 +15,7 @@ export const setPocketBase = async () => {
   rawPB = new PocketBase(url);
   pb.autoCancellation(false);
   adminPB.autoCancellation(false);
+  rawPB.autoCancellation(false);
   await adminPB.admins.authWithPassword(adminEmail, adminPassword);
 };
 

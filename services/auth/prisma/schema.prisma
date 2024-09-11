@@ -275,6 +275,10 @@ model Location {
   imageUrl                  String?
   connectionStatus          String?
   lastConnectionStatusCheck DateTime?
+  useRemoteConnection       Boolean?  @default(false)
+  remoteHTTPUrl             String?
+  remoteTCPUrl              String?
+  isLocked                  Boolean?  @default(false)
   created                   DateTime  @default(now())
   updated                   DateTime  @updatedAt
 

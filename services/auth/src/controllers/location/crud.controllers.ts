@@ -6,9 +6,25 @@ import { LocationPocketbaseService } from '../../modules/pocketbase/locations.pb
 import { LocationPostgresService } from '../../modules/postgres/location.pg';
 import { Location, Prisma } from '@prisma/client';
 import { sendScpiCommand, sendTCPMessage } from '../../lib/tcpClient';
+import { LocationNote } from '../../lib/pocketbase.types';
+import { getPocketBase } from '../../lib/pocketbase';
+import { config } from '../../config/config';
 // import { getPocketBase } from '../../lib/pocketbase';
 // import { sendScpiCommand, TCPClientFactory } from '../../lib/tcpClient';
 // import spanishCities from './spanishCities.json';
+
+export const getLocationDetailsHandler = async (req: Request, res: Response) => {
+  const locationId = res.locals.location.id;
+  const locpgs = new LocationPostgresService({});
+  const result = (
+    await locpgs.findById({
+      id: locationId,
+      include: { _count: { select: { contacts: true } }, addedByData: true, contacts: true, locationTypeData: true },
+    })
+  ).result!;
+  const sr = statusTypes.get(result.statusType)!({ ...result });
+  return res.status(sr.statusCode).send(sr);
+};
 
 export const createLocationHandler = async (req: Request, res: Response) => {
   const { name, longitude, latitude, locationType, deviceData, description, city, address, contacts } = req.body;
@@ -29,7 +45,9 @@ export const updateLocationHandler = async (req: Request, res: Response) => {
 };
 
 export const deleteLocationHandler = async (req: Request, res: Response) => {
-  const sr = statusTypes.get('OK')!({ message: 'Delete location not yet implemented' });
+  const locpbs = await new LocationPocketbaseService({ location: res.locals.location }).adminAuth();
+  const result = (await locpbs.deleteLocation({})).result!;
+  const sr = statusTypes.get(result?.statusType)!({ ...result });
   return res.status(sr.statusCode).send(sr);
 };
 
@@ -103,14 +121,35 @@ export const testDeviceConnectionHandler = async (_: Request, res: Response) => 
   }
   // const deviceResponse = '';
   const { ipAddress: host, port } = location.deviceData as Prisma.JsonObject as { ipAddress: string; port: number };
-
-  console.log({ host, port });
+  const { useRemoteConnection, remoteTCPUrl } = location;
+  let remoteHost = host,
+    remotePort = port;
+  if (remoteTCPUrl && useRemoteConnection) {
+    const hostPort = remoteTCPUrl.replace('//', '').split(':');
+    remoteHost = hostPort[1];
+    remotePort = Number(hostPort[2]);
+  }
+  console.log({ host, port, remoteHost, remotePort });
   try {
-    const result = await sendTCPMessage(host, port, '*IDN?');
+    const result = await sendTCPMessage(remoteHost, remotePort, '*IDN?');
     console.log({ result });
     await locpbs.updateLocation({
       updateData: { connectionStatus: result.error ? 'ERROR' : 'OK', lastConnectionStatusCheck: new Date() },
+      options: { requestKey: null },
     });
+    const newLocNoteData: Partial<LocationNote> = {
+      type: result.error ? 'ERROR' : 'INFO',
+      isSystemNote: true,
+      note: `CMD: '*IDN?', Response: '${result.error ? result.error : result.response}'`,
+      location: location.id,
+      author: res.locals.authUserId ?? undefined,
+      details: result,
+    };
+    const pb = getPocketBase(true);
+    await pb.admins.authWithPassword(config.pocketbase.adminEmail, config.pocketbase.adminPassword, {
+      requestKey: null,
+    });
+    await pb.collection('locationNotes').create(newLocNoteData);
     if (result.error) {
       const sr = statusTypes.get('ServiceUnavailable')!({
         message: `Unable to connect to: ${location.name}`,
@@ -140,8 +179,29 @@ export const sendDeviceCommandHandler = async (req: Request, res: Response) => {
     return res.status(sr.statusCode).send(sr);
   }
   const { ipAddress: host, port } = location.deviceData as Prisma.JsonObject as { ipAddress: string; port: number };
+  const { useRemoteConnection, remoteTCPUrl } = location;
+  let remoteHost = host,
+    remotePort = port;
+  if (remoteTCPUrl && useRemoteConnection) {
+    const hostPort = remoteTCPUrl.replace('//', '').split(':');
+    remoteHost = hostPort[1];
+    remotePort = Number(hostPort[2]);
+  }
   const { command } = req.body;
-  sendScpiCommand({ host, port, command }, async (err, response) => {
+  sendScpiCommand({ host: remoteHost, port: remotePort, command }, async (err, response) => {
+    const newLocNoteData: Partial<LocationNote> = {
+      type: err ? 'ERROR' : command.charAt(command.length - 1) !== '?' ? 'SUCCESS' : 'INFO',
+      isSystemNote: true,
+      note: `CMD: '${command}', Response: '${err ? err : response}'`,
+      location: location.id,
+      author: res.locals.authUserId ?? undefined,
+      details: { err, response },
+    };
+    const pb = getPocketBase(true);
+    await pb.admins.authWithPassword(config.pocketbase.adminEmail, config.pocketbase.adminPassword, {
+      requestKey: null,
+    });
+    await pb.collection('locationNotes').create(newLocNoteData);
     if (err) {
       console.log({ err });
       // const result = (

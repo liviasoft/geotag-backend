@@ -11,8 +11,12 @@ export const setPocketBase = async () => {
   } = config;
   console.log({ url, adminEmail, adminPassword });
   pb = new PocketBase(url) as TypedPocketBase;
+  pb.autoCancellation(false);
   adminPB = new PocketBase(url) as TypedPocketBase;
-  await adminPB.admins.authWithPassword(adminEmail, adminPassword);
+  adminPB.autoCancellation(false);
+  await adminPB.admins.authWithPassword(adminEmail, adminPassword, {
+    requestKey: null,
+  });
 };
 
 export const getPocketBase = (isAdmin = false) => (isAdmin ? adminPB : pb);

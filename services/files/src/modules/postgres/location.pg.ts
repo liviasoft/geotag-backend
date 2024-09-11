@@ -30,6 +30,10 @@ export class LocationPostgresService extends PostgresDBService<'location' | 'loc
     'imageUrl',
     'connectionStatus',
     'lastConnectionStatusCheck',
+    'useRemoteConnection',
+    'remoteHTTPUrl',
+    'remoteTCPUrl',
+    'isLocked',
     'created',
     'updated',
   ];
