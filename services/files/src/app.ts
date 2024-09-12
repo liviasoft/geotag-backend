@@ -8,12 +8,13 @@ import { getProxyMeta } from './middleware/auth';
 
 const app = express();
 
-app.use(
-  cors({
-    credentials: true,
-    origin: ['http://localhost:3001'],
-  }),
-);
+app.use(cors());
+// app.use(
+//   cors({
+//     credentials: true,
+//     origin: ['http://localhost:3001', 'https://emf-frontend-staging.up.railway.app'],
+//   }),
+// );
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(cookieParser());
