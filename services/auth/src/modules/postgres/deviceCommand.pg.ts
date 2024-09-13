@@ -150,8 +150,19 @@ export class DeviceCommandPostgresService extends PostgresDBService<'deviceComma
     return this;
   }
 
-  async batchCreate(): Promise<this> {
-    console.log('Not yet implemented');
+  async batchCreate(batchData: DeviceCommand[]): Promise<this> {
+    try {
+      const results = await this.prisma.deviceCommand.createMany({
+        data: [...batchData],
+        skipDuplicates: true,
+      });
+      this.result = statusTMap.get('OK')!({
+        data: { meta: { results } },
+        message: `${results.count} Device Commands Added`,
+      });
+    } catch (error: any) {
+      this.formatError(error);
+    }
     return this;
   }
 

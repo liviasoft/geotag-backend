@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  checkDeviceForNewFilesHandler,
   deviceExists,
   getDeviceMeasurementFilesHandler,
   getFileSignalDataHandler,
@@ -20,7 +21,7 @@ router.use('/:locationId/notes', locationNoteRoutes);
 router.get('/:deviceId/measurement-files', getStoredMeasurementFilesHandler);
 router.get('/:deviceId/measurement-files/search', searchDeviceMeasurementFilesHandler);
 router.get('/:deviceId/device/measurement-files', getDeviceMeasurementFilesHandler);
-router.get('/:deviceId/device/new-files', getDeviceMeasurementFilesHandler);
+router.get('/:deviceId/device/new-files', checkDeviceForNewFilesHandler);
 router.get('/:deviceId/measurement-files/:fileId', requireLoggedInUser, triggerFileProcessingHandler);
 router.get('/:deviceId/measurement-files/:fileId/data', getFileSignalDataHandler);
 

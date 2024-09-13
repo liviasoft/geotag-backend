@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { DeviceCommandPostgresService } from '../../modules/postgres/deviceCommand.pg';
 import { statusTypes, TStatus } from '@neoncoder/typed-service-response';
 import { NextFunction } from 'http-proxy-middleware/dist/types';
+import { DeviceCommand } from '@prisma/client';
 
 export const getDeviceCommandsHandler = async (req: Request, res: Response) => {
   const dcpgs = new DeviceCommandPostgresService({});
@@ -28,6 +29,22 @@ export const deleteDeviceCommandsHandler = async (_: Request, res: Response) => 
   const dcpgs = new DeviceCommandPostgresService({ deviceCommand: res.locals.deviceCommand });
   const result = (await dcpgs.delete()).result! as TStatus<'deviceCommand'>;
   const sr = statusTypes.get(result.statusType)!({ ...result, newAccessToken: res.locals.newAccessToken });
+  return res.status(sr.statusCode).send(sr);
+};
+
+export const batchCreateDeviceCommandsHandler = async (req: Request, res: Response) => {
+  const dcpgs = new DeviceCommandPostgresService({});
+  if (!req.body.data) {
+    const sr = statusTypes.get('BadRequest')!({ message: 'Batch Data is required' });
+    return res.status(sr.statusCode).send(sr);
+  }
+  if (!Array.isArray(req.body.data)) {
+    const sr = statusTypes.get('BadRequest')!({ message: 'Batch Data must be a list of Device Commands' });
+    return res.status(sr.statusCode).send(sr);
+  }
+  const batchData = req.body.data.map((x: DeviceCommand) => dcpgs.sanitize<DeviceCommand>(dcpgs.fields, x));
+  const result = (await dcpgs.batchCreate(batchData)).result!;
+  const sr = statusTypes.get(result.statusType)!({ ...result });
   return res.status(sr.statusCode).send(sr);
 };
 

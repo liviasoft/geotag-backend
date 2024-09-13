@@ -13,6 +13,7 @@ import {
   addToTrace,
   extractFileMetadata,
   getMostRelevantMetadata,
+  getUnprocessedDeviceFiles,
   saveMeasurement,
   saveMetadata,
   saveTrace,
@@ -50,12 +51,14 @@ export const getDeviceMeasurementFilesHandler = async (req: Request, res: Respon
   const { useRemoteConnection, remoteHTTPUrl } = device;
   try {
     const deviceUrl = useRemoteConnection ? `${remoteHTTPUrl}/internal/EMF` : `http://${ipAddress}/internal/EMF`;
-    const { data: html } = await axios.get(deviceUrl);
+    const { data: html } = await axios.get(deviceUrl, { headers: { 'ngrok-skip-browser-warning': true } });
     const hrefs: string[] = extractAttrFromHTML({ html });
     const fileFolders = hrefs.filter((_, i) => i > 0).map((y) => `${deviceUrl}/${y}`);
-    const results = (await Promise.all(fileFolders.map(async (x) => await axios.get(x)))).map(({ data }) =>
-      extractAttrFromHTML({ html: data }),
-    );
+    const results = (
+      await Promise.all(
+        fileFolders.map(async (x) => await axios.get(x, { headers: { 'ngrok-skip-browser-warning': true } })),
+      )
+    ).map(({ data }) => extractAttrFromHTML({ html: data }));
     // console.log({ results });
     const files = results
       .map((x, i) => {
@@ -154,7 +157,10 @@ export const triggerFileProcessingHandler = async (req: Request, res: Response) 
 
   const cs = new CacheService().formatKey(undefined, 'measurements');
   try {
-    const { data: blob } = await axios.get(mfpgs.measurementFile!.fileUrl, { responseType: 'blob' });
+    const { data: blob } = await axios.get(mfpgs.measurementFile!.fileUrl, {
+      responseType: 'blob',
+      headers: { 'ngrok-skip-browser-warning': true },
+    });
     const lines = blob.split('\n');
     const firstLine = lines[0];
     const signalmeta: SignalMeta = {};
@@ -270,5 +276,24 @@ export const searchDeviceMeasurementFilesHandler = async (req: Request, res: Res
     })
   ).result!;
   const sr = statusTypes.get(result.statusType)!({ ...result });
+  return res.status(sr.statusCode).send(sr);
+};
+
+export const checkDeviceForNewFilesHandler = async (req: Request, res: Response) => {
+  const device: Location = res.locals.device;
+  const { ipAddress } = device.deviceData as Prisma.JsonObject;
+  if (!ipAddress) {
+    const sr = statusTypes.get('ExpectationFailed')!({ message: `${device.name}: Invalid Ip Address` });
+    return res.status(sr.statusCode).send(sr);
+  }
+  if (device.connectionStatus !== 'OK') {
+    const sr = statusTypes.get('ExpectationFailed')!({ message: `${device.name}: Check device connection status` });
+    return res.status(sr.statusCode).send(sr);
+  }
+  const deviceFiles = await getUnprocessedDeviceFiles(device.id, ipAddress as string);
+  const sr = statusTypes.get('OK')!({
+    message: `${deviceFiles.length} New Files Found on device`,
+    data: { deviceFiles },
+  });
   return res.status(sr.statusCode).send(sr);
 };

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   addDeviceCommandHandler,
+  batchCreateDeviceCommandsHandler,
   deleteDeviceCommandsHandler,
   deviceCommandExists,
   getDeviceCommandsHandler,
@@ -19,6 +20,7 @@ router.post(
   requireLoggedInUser,
   addDeviceCommandHandler,
 );
+router.post('/batch', requireLoggedInUser, batchCreateDeviceCommandsHandler);
 router.patch('/:deviceCommandId', updateDeviceCommandsHandler);
 router.delete('/:deviceCommandId', deleteDeviceCommandsHandler);
 
