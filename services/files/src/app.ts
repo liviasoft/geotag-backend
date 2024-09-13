@@ -16,7 +16,7 @@ app.use(
       'http://localhost:3001',
       'http://localhost:3002',
       'https://emf-frontend-staging.up.railway.app',
-      'https://admin-dashboard-staging-2cc9.up.railway.app',
+      'https://auth-service-staging-9064.up.railway.app',
     ],
   }),
 );
