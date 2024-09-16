@@ -14,11 +14,12 @@ import { DeviceFile } from '../../utils/helpers/custom.types';
 // import { MeasurementFilePocketbaseService } from '../../modules/pocketbase/measurementFile.pb';
 import { getRawPocketBase } from '../../lib/pocketbase';
 import { config } from '../../config/config';
-import { Measurement, MeasurementMetadata, Point, Prisma, Trace } from '@prisma/client';
+import { Measurement, MeasurementMetadata, Point, Prisma, Trace, Location as PrismaLocation } from '@prisma/client';
 import { isValidDate } from '@neoncoder/validator-utils';
 import { Decimal } from '@prisma/client/runtime/library';
 import { getPrismaClient } from '../../lib/prisma';
 import { LocationNotePostgresService } from '../../modules/postgres/locationNotes.pg';
+import { LocationPostgresService } from '../../modules/postgres/location.pg';
 
 export const testDeviceConnection = async (deviceId: string): Promise<boolean> => {
   const locpbs = await new LocationPocketbaseService({ isAdmin: true }).adminAuth();
@@ -78,9 +79,13 @@ export const testDeviceConnection = async (deviceId: string): Promise<boolean> =
 export const getUnprocessedDeviceFiles = async (deviceId: string, ipAddress: string) => {
   const locNotepbs = await new LocationNotePocketbaseService({ isAdmin: true }).adminAuth();
   const locNotepgs = await new LocationNotePostgresService({});
+  const location = (await new LocationPostgresService({}).findById({ id: deviceId })).result!.data!
+    .location! as PrismaLocation;
   const mfpgs = new MeasurementFilePostgresService({});
   try {
-    const deviceUrl = `http://${ipAddress}/internal/EMF`;
+    const deviceUrl = location.useRemoteConnection
+      ? `${location.remoteHTTPUrl}/internal/EMF`
+      : `http://${ipAddress}/internal/EMF`;
     const { data: html } = await axios.get(deviceUrl);
     const hrefs: string[] = extractAttrFromHTML({ html });
     const fileFolders = hrefs.filter((_, i) => i > 0).map((y) => `${deviceUrl}/${y}`);
