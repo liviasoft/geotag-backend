@@ -260,11 +260,16 @@ export const downloadDeviceFile = async (deviceId: string, deviceFile: DeviceFil
   }
 };
 
+// TODO: Measurement Power Units Adapter
+
 export const convertDBmVtoVM = (dbmvValue: number) => {
-  return 10 ** ((dbmvValue - 120) / 10);
+  return 10 ** ((dbmvValue - 30) / 10);
 };
 
+// export const convert
+
 export const calculateRefEMFLimit = (freq: number) => {
+  if (freq > 2000) return 61;
   return 1.375 * Math.sqrt(freq);
 };
 
