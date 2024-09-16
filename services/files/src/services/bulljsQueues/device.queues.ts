@@ -313,7 +313,7 @@ const storeFileSignals = async (job: Job) => {
   let name: string = '';
   let trace: Trace | null = null;
   let measurementId: string | null = null;
-  const points: Omit<Point, 'traceId' | 'measurementFileId'>[] = [];
+  let points: Omit<Point, 'traceId' | 'measurementFileId'>[] = [];
   let measurementIndex = 0;
   job.log(`Parsing Lines: ${lines.length}`);
   for (const line of lines) {
@@ -349,6 +349,8 @@ const storeFileSignals = async (job: Job) => {
       job.log(`Trace End. Updating Trace: ${name}`);
       if (trace) {
         await saveTracePoints(points, trace.id, file.id);
+        points = [];
+        trace = null;
       }
     }
   }

@@ -14,7 +14,15 @@ import { DeviceFile } from '../../utils/helpers/custom.types';
 // import { MeasurementFilePocketbaseService } from '../../modules/pocketbase/measurementFile.pb';
 import { getRawPocketBase } from '../../lib/pocketbase';
 import { config } from '../../config/config';
-import { Measurement, MeasurementMetadata, Point, Prisma, Trace, Location as PrismaLocation } from '@prisma/client';
+import {
+  Measurement,
+  MeasurementMetadata,
+  Point,
+  Prisma,
+  Trace,
+  Location as PrismaLocation,
+  MeasurementFile as PrismaMeasurementFile,
+} from '@prisma/client';
 import { isValidDate } from '@neoncoder/validator-utils';
 import { Decimal } from '@prisma/client/runtime/library';
 import { getPrismaClient } from '../../lib/prisma';
@@ -24,7 +32,7 @@ import { LocationPostgresService } from '../../modules/postgres/location.pg';
 export const testDeviceConnection = async (deviceId: string): Promise<boolean> => {
   const locpbs = await new LocationPocketbaseService({ isAdmin: true }).adminAuth();
   await locpbs.findLocationById({ id: deviceId });
-  const { id, name, deviceData } = locpbs.location as Location;
+  const { id, name, deviceData, useRemoteConnection, remoteTCPUrl } = locpbs.location as Location;
   const locNotepbs = await new LocationNotePocketbaseService({ isAdmin: true }).adminAuth();
   const locNotepgs = new LocationNotePostgresService({});
   const { data } = (
@@ -38,7 +46,15 @@ export const testDeviceConnection = async (deviceId: string): Promise<boolean> =
   const type = 'ERROR';
   try {
     const { ipAddress: host, port } = deviceData;
-    const testResult = await sendTCPMessage(host, port, '*IDN?');
+
+    let remoteHost = host,
+      remotePort = port;
+    if (remoteTCPUrl && useRemoteConnection) {
+      const hostPort = remoteTCPUrl.replace('//', '').split(':');
+      remoteHost = hostPort[1];
+      remotePort = Number(hostPort[2]);
+    }
+    const testResult = await sendTCPMessage(remoteHost, remotePort, '*IDN?');
     await locpbs.updateLocation({
       updateData: { connectionStatus: testResult.error ? 'ERROR' : 'OK', lastConnectionStatusCheck: new Date() },
     });
@@ -88,6 +104,7 @@ export const getUnprocessedDeviceFiles = async (deviceId: string, ipAddress: str
       : `http://${ipAddress}/internal/EMF`;
     const { data: html } = await axios.get(deviceUrl);
     const hrefs: string[] = extractAttrFromHTML({ html });
+    console.log({ hrefs });
     const fileFolders = hrefs.filter((_, i) => i > 0).map((y) => `${deviceUrl}/${y}`);
     const results = (await Promise.all(fileFolders.map(async (x) => await axios.get(x)))).map(({ data }) =>
       extractAttrFromHTML({ html: data }),
@@ -100,22 +117,47 @@ export const getUnprocessedDeviceFiles = async (deviceId: string, ipAddress: str
       const [yr, mnth, dy] = [date.substring(0, 4), date.substring(4, 6), date.substring(6, 8)];
       const [hr, min, sec] = [time.substring(0, 2), time.substring(2, 4), time.substring(4, 6)];
       const timeStamp = new Date(`${yr}-${mnth}-${dy} ${Number(hr) + 1}:${min}:${sec}.${milliseconds}`);
+      const fileDeviceUrl = `${fileFolder}${fileName}`;
+      console.log({ fileName, fileDeviceUrl, timeStamp });
       return {
         fileName,
-        fileDeviceUrl: `${fileFolder}${fileName}`,
+        fileDeviceUrl,
         timeStamp,
       };
     });
-
-    const lastDBFile = (await mfpgs.findFirst({ orderBy: { timeStamp: 'desc' } }))
-      .result! as TStatus<'measurementFile'>;
+    const deviceFileNames = deviceFiles.map(({ fileName }) => fileName);
+    const dbFileNames = (
+      (
+        await mfpgs.getFullList({
+          orderBy: { timeStamp: 'desc' },
+          filters: { AND: [{ fileName: { in: deviceFileNames } }, { location: deviceId }] },
+        })
+      ).result!.data!.measurementFiles! as PrismaMeasurementFile[]
+    ).map(({ fileName }) => fileName);
+    const newFilesCount = deviceFileNames.length - dbFileNames.length;
+    // const lastDBFile = (await mfpgs.findFirst({ orderBy: { timeStamp: 'desc' } }))
+    //   .result! as TStatus<'measurementFile'>;
+    // let newDeviceFiles: Array<DeviceFile> = [];
+    // if (lastDBFile?.data && lastDBFile?.data?.measurementFile) {
+    //   newDeviceFiles = deviceFiles.filter(
+    //     (file) => new Date(file.timeStamp) > new Date(lastDBFile.data?.measurementFile?.timeStamp),
+    //   );
+    // } else {
+    //   newDeviceFiles = deviceFiles;
+    // }
     let newDeviceFiles: Array<DeviceFile> = [];
-    if (lastDBFile?.data && lastDBFile?.data?.measurementFile) {
-      newDeviceFiles = deviceFiles.filter(
-        (file) => new Date(file.timeStamp) > new Date(lastDBFile.data?.measurementFile?.timeStamp),
-      );
-    } else {
+    if (newFilesCount) {
+      const fileNameObject: { [key: string]: string } = {};
+      for (let i = 0; i < dbFileNames.length; i++) {
+        if (!fileNameObject[dbFileNames[i]]) {
+          fileNameObject[dbFileNames[i]] = dbFileNames[i];
+        }
+      }
+      newDeviceFiles = deviceFiles.filter((file) => !fileNameObject[file.fileName]);
+    } else if (!dbFileNames.length) {
       newDeviceFiles = deviceFiles;
+    } else {
+      newDeviceFiles = [];
     }
     const result = (await locNotepgs.findFirst({ filters: { id: deviceId }, orderBy: { created: 'desc' } }))
       .result! as TStatus<'locationNote'>;
@@ -268,10 +310,8 @@ export const downloadDeviceFile = async (deviceId: string, deviceFile: DeviceFil
 // TODO: Measurement Power Units Adapter
 
 export const convertDBmVtoVM = (dbmvValue: number) => {
-  return 10 ** ((dbmvValue - 30) / 10);
+  return 10 ** ((dbmvValue - 60) / 20);
 };
-
-// export const convert
 
 export const calculateRefEMFLimit = (freq: number) => {
   if (freq > 2000) return 61;

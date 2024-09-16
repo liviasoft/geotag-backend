@@ -19,7 +19,7 @@ import {
   saveTrace,
   saveTracePoints,
 } from '../../services/bulljsQueues/utils';
-import { SignalMeta } from '../../services/bulljsQueues/device.queues';
+import { addToFileStorageQueue, SignalMeta } from '../../services/bulljsQueues/device.queues';
 import { MeasurementFilePocketbaseService } from '../../modules/pocketbase/measurementFile.pb';
 import { getPrismaClient } from '../../lib/prisma';
 import { MILLISECONDS, TIME_PERIOD, WORD_TO_TIME_PERIOD, WordTimePeriodKey } from '@neoncoder/validator-utils';
@@ -295,5 +295,10 @@ export const checkDeviceForNewFilesHandler = async (req: Request, res: Response)
     message: `${deviceFiles.length} New Files Found on device`,
     data: { deviceFiles },
   });
+  if (req.query.process) {
+    deviceFiles.forEach((file) => {
+      addToFileStorageQueue({ deviceId: device.id, ...file });
+    });
+  }
   return res.status(sr.statusCode).send(sr);
 };
