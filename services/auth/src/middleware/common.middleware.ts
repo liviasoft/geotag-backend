@@ -161,11 +161,15 @@ export const rperm =
   (permission: string, seperator: string = '.') =>
   (_: Request, res: Response, next: NextFunction) => {
     const { permissions: perms } = res.locals;
+    console.log({ perms });
     const [r, a] = permission.split(seperator);
     const action = a as unknown as TResourceAction;
     const resource = r.toUpperCase();
     if (!hasPermission({ action, resource, perms })) {
-      const sr = statusTypes.get('Forbidden')!({ meta: `${action} ${resource} permission required` });
+      const sr = statusTypes.get('Forbidden')!({
+        meta: `${action} ${resource} permission required`,
+        message: `Unauthorized - Missing required permissions`,
+      });
       return res.status(sr.statusCode).send(sr);
     }
     return next();
@@ -192,6 +196,7 @@ export const rperms =
     if (!hasPermissions({ actions: args, resource, perms })) {
       const sr = statusTypes.get('Forbidden')!({
         meta: `${resource} ${args.join(', ')} permission${args.length > 1 ? 's' : ''} required`,
+        message: `Unauthorized - Missing required permissions`,
       });
       return res.status(sr.statusCode).send(sr);
     }
@@ -275,7 +280,10 @@ export const specPerm = (specialPermission: string) => (_: Request, res: Respons
   const { specialPermissions: specPerms } = res.locals;
   const isAuthorized = specPerms && specPerms[specialPermission] && specPerms[specialPermission]['active'];
   if (!isAuthorized) {
-    const sr = statusTypes.get('Forbidden')!({ meta: `${specialPermission} special permission required` });
+    const sr = statusTypes.get('Forbidden')!({
+      meta: `${specialPermission} special permission required`,
+      message: 'Unauthorized - Missing special permissions',
+    });
     return res.status(sr.statusCode).send(sr);
   }
   return next();

@@ -59,7 +59,7 @@ export const getNearestCitiesHandler = async (req: Request, res: Response) => {
   const sr = statusTypes.get('OK')!<'cities'>({
     message: 'Nearest cities to location',
     data: {
-      cities,
+      cities: cities.sort(),
       meta: { lat, lng, limit },
     },
   });
