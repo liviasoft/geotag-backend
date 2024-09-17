@@ -52,7 +52,7 @@ export const deleteLocationHandler = async (req: Request, res: Response) => {
 };
 
 export const getNearestCitiesHandler = async (req: Request, res: Response) => {
-  const limit = parseInt(req.query.limit as string, 10) ? parseInt(req.query.limit as string, 10) : 10;
+  const limit = parseInt(req.query.limit as string, 10) ? parseInt(req.query.limit as string, 10) : 50;
   const lat = parseInt(req.query.lat as string, 10) ? parseInt(req.query.lat as string, 10) : 1;
   const lng = parseInt(req.query.lng as string, 10) ? parseInt(req.query.lng as string, 10) : 1;
   const { cities } = findClosestCities({ lat, lng }, limit);
