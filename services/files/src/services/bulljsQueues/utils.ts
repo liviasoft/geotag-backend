@@ -109,22 +109,25 @@ export const getUnprocessedDeviceFiles = async (deviceId: string, ipAddress: str
     const results = (await Promise.all(fileFolders.map(async (x) => await axios.get(x)))).map(({ data }) =>
       extractAttrFromHTML({ html: data }),
     );
-    const deviceFiles: DeviceFile[] = results.map((x, i) => {
-      const fileName = x[1];
-      const fileFolder = fileFolders[i];
-      const [dateTime, milliseconds] = fileName.split('_')[1].split('.');
-      const [date, time] = dateTime.split('T');
-      const [yr, mnth, dy] = [date.substring(0, 4), date.substring(4, 6), date.substring(6, 8)];
-      const [hr, min, sec] = [time.substring(0, 2), time.substring(2, 4), time.substring(4, 6)];
-      const timeStamp = new Date(`${yr}-${mnth}-${dy} ${Number(hr) + 1}:${min}:${sec}.${milliseconds}`);
-      const fileDeviceUrl = `${fileFolder}${fileName}`;
-      console.log({ fileName, fileDeviceUrl, timeStamp });
-      return {
-        fileName,
-        fileDeviceUrl,
-        timeStamp,
-      };
-    });
+    console.log({ fileResults: results });
+    const deviceFiles: DeviceFile[] = results
+      .filter((r) => r[2] !== 'ms_result.txt')
+      .map((x, i) => {
+        const fileName = x[1];
+        const fileFolder = fileFolders[i];
+        const [dateTime, milliseconds] = fileName.split('_')[1].split('.');
+        const [date, time] = dateTime.split('T');
+        const [yr, mnth, dy] = [date.substring(0, 4), date.substring(4, 6), date.substring(6, 8)];
+        const [hr, min, sec] = [time.substring(0, 2), time.substring(2, 4), time.substring(4, 6)];
+        const timeStamp = new Date(`${yr}-${mnth}-${dy} ${Number(hr) + 1}:${min}:${sec}.${milliseconds}`);
+        const fileDeviceUrl = `${fileFolder}${fileName}`;
+        console.log({ fileName, fileDeviceUrl, timeStamp });
+        return {
+          fileName,
+          fileDeviceUrl,
+          timeStamp,
+        };
+      });
     const deviceFileNames = deviceFiles.map(({ fileName }) => fileName);
     const dbFileNames = (
       (
