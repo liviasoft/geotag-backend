@@ -12,6 +12,7 @@ export const queueEventHandlers = async (msg: any, channel: Channel) => {
         if (result.statusType === 'OK') {
           channel.ack(msg);
         }
+        channel.ack(msg);
       }
       break;
     default:

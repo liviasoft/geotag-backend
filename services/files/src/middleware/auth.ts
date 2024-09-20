@@ -3,12 +3,10 @@ import { Request, Response, NextFunction } from 'express';
 
 export const requireLoggedInUser = async (_: Request, res: Response, next: NextFunction) => {
   const user = res.locals.user;
-  console.log({ user });
   if (!user) {
     const sr = statusTypes.get('Unauthorized')!({ message: `You need to be logged in` });
     return res.status(sr.statusCode).send(sr);
   }
-
   return next();
 };
 
@@ -25,7 +23,6 @@ export const getProxyMeta = async (req: Request, res: Response, next: NextFuncti
   if (req.headers.featurebans) res.locals.featureBans = JSON.parse(req.headers.featurebans as string);
   // console.log({ specialPermissions: req.headers.specialpermissions });
   // console.log({ featureBans: res.locals.featureBans });
-  console.log(res.locals);
   res.locals.params = {};
   next();
 };
